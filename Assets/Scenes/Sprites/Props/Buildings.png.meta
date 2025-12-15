@@ -103,12 +103,12 @@ TextureImporter:
       name: Buildings_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
+        x: 160
+        y: 64
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 87f782b9e3b27e743916cbee57d471cc
     internalID: 0
     vertices: []
     indices: 

@@ -19,7 +19,7 @@ MonoBehaviour:
   CanBuy: 1
   BuyPrice: 5
   CanSell: 1
-  Sellprice: 0
+  Sellprice: 5
   itemType: 1
   FeedAmount: 5
   isEatable: 1

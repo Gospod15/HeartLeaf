@@ -17,9 +17,9 @@ MonoBehaviour:
   isStackable: 1
   maxStackSize: 30
   CanBuy: 1
-  BuyPrice: 25
+  BuyPrice: 60
   CanSell: 1
-  Sellprice: 0
+  Sellprice: 40
   itemType: 0
   FeedAmount: 0
   isEatable: 0

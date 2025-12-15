@@ -21,6 +21,7 @@ public class WorldGenerator : MonoBehaviour
     [Header("Компоненти")]
     public Camera mainCamera;      
     public Transform treeParent;
+    public Transform BushParent;
 
     [Header("Тайлмапи")]
     public Tilemap groundTilemap;  
@@ -32,9 +33,11 @@ public class WorldGenerator : MonoBehaviour
     public TileBase[] DetailsTileOnGrass;
     public TileBase mountainTile; 
 
-    [Header("Дерева")]
+    [Header("Рослинність")]
+    public GameObject[] BushPrefabs;
     public GameObject[] treePrefabs;
     public LayerMask treeLayer; 
+    public LayerMask BushLayer; 
 
     [Header("Біоми")]
     public float scale = 0.1f;
@@ -42,6 +45,7 @@ public class WorldGenerator : MonoBehaviour
     [Range(0, 1)] public float sandThreshold = 0.25f;
     [Range(0, 1)] public float mountainLevel = 0.85f;
     [Range(0, 1)] public float forestThreshold = 0.4f;
+    [Range(0, 1)] public float BushZones = 5f;
 
     private Dictionary<Vector2Int, List<GameObject>> activeChunks = new Dictionary<Vector2Int, List<GameObject>>();
 
@@ -52,9 +56,13 @@ public class WorldGenerator : MonoBehaviour
 
     void Start()
     {
-        if (treeParent == null) treeParent = new GameObject("Trees_Container").transform;
-        if (mainCamera == null) mainCamera = Camera.main;
+        if (randomSeed) {
+            seed = Random.Range(-1000,-1000);
+            Debug.Log("Сгенерований сід світу" + seed);
+        }
 
+        if (treeParent == null) Debug.Log("Немає батьківского об'єкта дерева");
+        if (mainCamera == null) mainCamera = Camera.main;
 
         UpdateChunks();
     }
@@ -63,6 +71,7 @@ public class WorldGenerator : MonoBehaviour
     {
         UpdateChunks();
     }
+
 
     void UpdateChunks()
     {
@@ -128,6 +137,7 @@ public class WorldGenerator : MonoBehaviour
     void GenerateChunk(Vector2Int chunkCoord)
     {
         List<GameObject> chunkTrees = new List<GameObject>();
+        List<GameObject> chunkBushs = new List<GameObject>();
         int startX = chunkCoord.x * chunkSize;
         int startY = chunkCoord.y * chunkSize;
 
@@ -200,6 +210,27 @@ public class WorldGenerator : MonoBehaviour
                         }
                     }
                 }
+
+                if (!isOccupied && BushPrefabs != null && BushPrefabs.Length > 0)
+                {
+                    float moisture = GetNoise(globalX, globalY, seed + 6390, scale * 10.15f);
+                    bool isBushZone= moisture > BushZones;
+
+                    float BushChance = isBushZone ? 0.003f : 0.000065f; 
+                    float randomVal = GetPseudoRandomFloat(globalX, globalY);
+
+                    if (randomVal < BushChance)
+                    {
+                        if (!Physics2D.OverlapCircle(new Vector2(globalX + 0.5f, globalY + 0.5f), 0.4f, BushLayer))
+                        {
+                            Vector3 spawnPos = new Vector3(globalX + Random.Range(-1.5f,2.5f), globalY + Random.Range(-0.35f,-0.8f), -0.1f);
+                            
+                            GameObject prefab = BushPrefabs[GetPseudoRandom(globalX, globalY, BushPrefabs.Length)];
+                            GameObject newBush = Instantiate(prefab, spawnPos, Quaternion.identity, BushParent);
+                            chunkBushs.Add(newBush);
+                        }
+                    }
+                }
             }
         }
         activeChunks.Add(chunkCoord, chunkTrees);
@@ -221,16 +252,6 @@ public class WorldGenerator : MonoBehaviour
     float GetNoise(int x, int y, int s, float sc)
     {
         return Mathf.PerlinNoise((x * sc) + s, (y * sc) + s);
-    }
-
-    void OnDrawGizmos()
-    {
-        if (mainCamera == null) return;
-        float cameraHeight = mainCamera.orthographicSize;
-        float cameraWidth = cameraHeight * mainCamera.aspect;
-        Vector3 camPos = mainCamera.transform.position;
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(camPos, new Vector3((cameraWidth + tileBuffer) * 2, (cameraHeight + tileBuffer) * 2, 0));
     }
 
     public bool TryMineStone(Vector3 playerWorldPos)
@@ -266,21 +287,5 @@ public class WorldGenerator : MonoBehaviour
             }
         }
         return false;
-    }
-
-    public void GenerateWorld()
-    {
-        groundTilemap.ClearAllTiles();
-        
-        foreach (var chunk in activeChunks.Values)
-        {
-            foreach (var tree in chunk)
-            {
-                if(tree != null) Destroy(tree);
-            }
-        }
-        activeChunks.Clear();
-
-        UpdateChunks();
     }
 }

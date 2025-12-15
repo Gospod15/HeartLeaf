@@ -19,11 +19,15 @@ public class CameraController : MonoBehaviour
 
     [Header("Налаштування Прозорості (X-Ray)")]
     public LayerMask treeLayer;
+    public LayerMask bushesLayer; // Шар для кущів
+    
     public float transparency = 0.5f;
     public float checkRadius = 1.5f;
     public float yOffsetCheck = 0.5f;
 
+    // Списки для зберігання об'єктів, які зараз прозорі
     private List<SpriteRenderer> obscuredTrees = new List<SpriteRenderer>();
+    private List<SpriteRenderer> obscuredBushes = new List<SpriteRenderer>();
 
     void Start()
     {
@@ -42,39 +46,53 @@ public class CameraController : MonoBehaviour
     {
         if (target == null) return;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(target.position + Vector3.up * yOffsetCheck, checkRadius, treeLayer);
+        // Викликаємо метод обробки для дерев і оновлюємо список дерев
+        obscuredTrees = UpdateTransparencyForLayer(treeLayer, obscuredTrees);
 
-        List<SpriteRenderer> currentHits = new List<SpriteRenderer>();
+        // Викликаємо той самий метод для кущів і оновлюємо список кущів
+        obscuredBushes = UpdateTransparencyForLayer(bushesLayer, obscuredBushes);
+    }
 
+    // Універсальний метод для будь-якого шару (дерева або кущі)
+    // Приймає шар для перевірки та список попередніх прозорих об'єктів
+    // Повертає оновлений список прозорих об'єктів
+    List<SpriteRenderer> UpdateTransparencyForLayer(LayerMask layer, List<SpriteRenderer> currentObscuredList)
+    {
+        // 1. Шукаємо колайдери на потрібному шарі
+        Collider2D[] hits = Physics2D.OverlapCircleAll(target.position + Vector3.up * yOffsetCheck, checkRadius, layer);
+        List<SpriteRenderer> newHits = new List<SpriteRenderer>();
+
+        // 2. Перевіряємо нові перекриття
         foreach (var hit in hits)
         {
             SpriteRenderer sr = hit.GetComponent<SpriteRenderer>();
             if (sr != null)
             {
-                if (target.position.y > hit.transform.position.y) 
+                // Перевірка: чи гравець вище (по Y) за об'єкт (тобто "за" ним)
+                if (target.position.y > hit.transform.position.y)
                 {
                     Color color = sr.color;
-                    color.a = transparency;
+                    color.a = transparency; // Робимо прозорим
                     sr.color = color;
 
-                    currentHits.Add(sr);
+                    newHits.Add(sr);
                 }
             }
         }
 
-
-        foreach (var oldSr in obscuredTrees)
+        // 3. Відновлюємо прозорість для тих, хто більше не перекриває гравця
+        foreach (var oldSr in currentObscuredList)
         {
-
-            if (!currentHits.Contains(oldSr) && oldSr != null)
+            // Якщо старого об'єкта немає в новому списку перекриттів -> відновлюємо його
+            if (!newHits.Contains(oldSr) && oldSr != null)
             {
                 Color color = oldSr.color;
-                color.a = 1f;
+                color.a = 1f; // Повертаємо непрозорість
                 oldSr.color = color;
             }
         }
 
-        obscuredTrees = currentHits;
+        return newHits;
     }
 
     void HandleZoom()

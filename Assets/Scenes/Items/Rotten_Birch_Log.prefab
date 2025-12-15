@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6876256585577901530}
   - component: {fileID: 5644136269342887739}
   - component: {fileID: 4880623511038108137}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Rotten_Birch_Log
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -140,5 +140,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4c6d9076ebaeac4d84a50a18a363e5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemInWorldManager
-  itemData: {fileID: 11400000, guid: c0d2d526727b69746bf9370f8548bf49, type: 2}
+  itemData: {fileID: 11400000, guid: f6630e186995e9e47b8a267f5c2cefc1, type: 2}
   amount: 1

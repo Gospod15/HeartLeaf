@@ -174,6 +174,7 @@ void Start()
         if (currentHealth <= 0) Die(); 
     }
 
+    //Функція бігу та витривалості
     void HandleMovementAndStamina(bool isSprinting) 
     { 
         bool isMoving = movementInput.sqrMagnitude > 0; 
