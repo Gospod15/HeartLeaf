@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour
     public Image UIInventory; 
     public Image UIInventoryArmory; 
 
-    [Header("Збирання (Руками на E)")]
+    [Header("Збирання")]
     public float interactionRadius = 2.0f; 
     public LayerMask interactionLayer;
 

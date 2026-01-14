@@ -115,9 +115,9 @@ public class WorldGenerator : MonoBehaviour
 
     void UnloadChunk(Vector2Int chunkCoord)
     {
-        if (activeChunks.TryGetValue(chunkCoord, out List<GameObject> trees))
+        if (activeChunks.TryGetValue(chunkCoord, out List<GameObject> objects))
         {
-            foreach (var tree in trees) if (tree != null) Destroy(tree);
+            foreach (var obj in objects) if (obj != null) Destroy(obj);
             activeChunks.Remove(chunkCoord);
         }
 
@@ -136,8 +136,7 @@ public class WorldGenerator : MonoBehaviour
 
     void GenerateChunk(Vector2Int chunkCoord)
     {
-        List<GameObject> chunkTrees = new List<GameObject>();
-        List<GameObject> chunkBushs = new List<GameObject>();
+        List<GameObject> chunkObjects = new List<GameObject>();
         int startX = chunkCoord.x * chunkSize;
         int startY = chunkCoord.y * chunkSize;
 
@@ -206,7 +205,7 @@ public class WorldGenerator : MonoBehaviour
                             
                             GameObject prefab = treePrefabs[GetPseudoRandom(globalX, globalY, treePrefabs.Length)];
                             GameObject newTree = Instantiate(prefab, spawnPos, Quaternion.identity, treeParent);
-                            chunkTrees.Add(newTree);
+                            chunkObjects.Add(newTree);
                         }
                     }
                 }
@@ -227,13 +226,13 @@ public class WorldGenerator : MonoBehaviour
                             
                             GameObject prefab = BushPrefabs[GetPseudoRandom(globalX, globalY, BushPrefabs.Length)];
                             GameObject newBush = Instantiate(prefab, spawnPos, Quaternion.identity, BushParent);
-                            chunkBushs.Add(newBush);
+                            chunkObjects.Add(newBush);
                         }
                     }
                 }
             }
         }
-        activeChunks.Add(chunkCoord, chunkTrees);
+        activeChunks.Add(chunkCoord, chunkObjects);
     }
 
     float GetPseudoRandomFloat(int x, int y)
