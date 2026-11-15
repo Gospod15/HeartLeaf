@@ -103,10 +103,10 @@ TextureImporter:
       name: inv_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 122
         y: 0
-        width: 283
-        height: 117
+        width: 325
+        height: 285
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,7 +130,7 @@ TextureImporter:
         width: 396
         height: 160
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

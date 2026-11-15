@@ -274,12 +274,10 @@ public class WorldGenerator : MonoBehaviour
                         TileBase randomGrass = grassTiles[Random.Range(0, grassTiles.Length)];
                         groundTilemap.SetTile(checkPos, randomGrass);
 
-                        Debug.Log("Викопано камінь!");
                         return true; 
                     }
                     else
                     {
-                        Debug.Log("Інвентар повний!");
                         return false;
                     }
                 }
