@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3511cc47562fde47bdd0aad2d665a88, type: 3}
+  m_Name: Rock
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: Rock
+  description: "\u0414\u043F \u0445\u043F\u0439\u043F \u0440\u0435\u0430\u043B\u044C\u043D\u043E
+    \u043F\u0430\u043F\u0430"
+  rarity: 3
+  icon: {fileID: 2029542551908640097, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  itemType: 0
+  isStackable: 1
+  maxStackSize: 16
+  dropPrefab: {fileID: 7880113943053705827, guid: ff7d472e7837ef9489b4da616ddee6ef, type: 3}
+  isEatable: 0
+  FeedAmount: 0
+  CanBuy: 0
+  BuyPrice: 0
+  CanSell: 0
+  Sellprice: 0

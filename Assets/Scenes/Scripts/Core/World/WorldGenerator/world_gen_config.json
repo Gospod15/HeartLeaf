@@ -1,0 +1,41 @@
+{
+  "seed": 12345,
+  "useRandomSeed": false,
+  "loadSavedWorld": true,
+  "chunkSize": 16,
+  "cameraChunkPadding": 2,
+  "unloadBufferChunks": 2,
+
+  "noiseScale": 0.025,
+  "waterLevel": 0.24,
+  "sandLevel": 0.30,
+  "mountainStartLevel": 0.72,
+  "forestNoiseScale": 0.03,
+  "forestThreshold": 0.52,
+
+  "generateRivers": true,
+  "riverNoiseScale": 0.022,
+  "riverWidth": 0.035,
+  "riverSandBankWidth": 0.022,
+
+  "grassVariationChance": 0.25,
+
+  "forestTreeChance": 0.16,
+  "forestEdgeTreeChance": 0.04,
+  "forestEdgeWidth": 0.12,
+
+  "forestBushChance": 0.045,
+  "forestEdgeBushChance": 0.015,
+  "plainsBushChance": 0.008,
+
+  "plainsFoothillRockChance": 0.015,
+  "plainsBaseRockChance": 0.004,
+  "mountainRockChance": 0.08,
+
+  "plainsSmallStoneChance": 0.018,
+  "beachSmallStoneChance": 0.025,
+  "mountainSmallStoneChance": 0.04,
+
+  "mineEntranceChance": 0.004,
+  "mineDarkenRadius": 3
+}

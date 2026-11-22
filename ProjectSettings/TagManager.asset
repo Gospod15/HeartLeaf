@@ -8,12 +8,12 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Tree
+  - Organics
   - Water
   - UI
-  - Bushes
-  - Items
+  - ItemsInWorld
   - 
+  - PlayerInteractions
   - 
   - 
   - 

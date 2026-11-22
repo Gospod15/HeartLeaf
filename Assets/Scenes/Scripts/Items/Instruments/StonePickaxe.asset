@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f34b4dc3881d5a94bac61fae3afcf24f, type: 3}
+  m_Name: StonePickaxe
+  m_EditorClassIdentifier: Assembly-CSharp::PickaxeItemData
+  itemName: Stone Pickaxe
+  description: 
+  rarity: 0
+  icon: {fileID: -917194314, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  itemType: 2
+  isStackable: 0
+  maxStackSize: 1
+  dropPrefab: {fileID: 0}
+  isEatable: 0
+  FeedAmount: 0
+  CanBuy: 0
+  BuyPrice: 0
+  CanSell: 0
+  Sellprice: 0
+  baseSpeed: 1
+  useRange: 2
+  staminaCost: 5
+  baseRockDamage: 1
+  hitRadius: 0.4
+  stoneItem: {fileID: 11400000, guid: d884559ef90baa040afd65f1908af0be, type: 2}
+  mineableStoneTiles:
+  - {fileID: 11400000, guid: 15a693881b2ef124fa4d6db1cd94d1a9, type: 2}
+  - {fileID: 11400000, guid: 8b0812fe73684c24c958d63d42033ff1, type: 2}
+  - {fileID: 11400000, guid: 96539373a006bbb4dab3e3124c432673, type: 2}
+  - {fileID: 11400000, guid: 89d9b53a8b0762c40ba70e00e378345f, type: 2}
+  - {fileID: 11400000, guid: f1a337b961352ba4292191ac0bee4010, type: 2}
+  - {fileID: 11400000, guid: eda73045707aff740a86c590dad1dcc3, type: 2}
+  - {fileID: 11400000, guid: 4eb44d7689cf239468a2b0b526a8e77d, type: 2}
+  - {fileID: 11400000, guid: a4bd11bfb70d49245aad104acfc1ae0c, type: 2}
+  - {fileID: 11400000, guid: bb7fe77af6cd3d045a841c9ebf24276b, type: 2}
+  replacementGrassTile: {fileID: 11400000, guid: b5b6ef68ddde55e42adc25e976002256, type: 2}

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3511cc47562fde47bdd0aad2d665a88, type: 3}
+  m_Name: Birch_Log
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: Birch log
+  description: 
+  rarity: 0
+  icon: {fileID: -488721925442295091, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  itemType: 0
+  isStackable: 1
+  maxStackSize: 16
+  dropPrefab: {fileID: 7880113943053705827, guid: 27ab1f1377fa96b4fadcdbf1e0030892, type: 3}
+  isEatable: 0
+  FeedAmount: 0
+  CanBuy: 0
+  BuyPrice: 0
+  CanSell: 0
+  Sellprice: 0

@@ -1,0 +1,291 @@
+fileFormatVersion: 2
+guid: a8563a854759cf74790459afb27a56ea
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2757887451555568444
+    second: Armor_0
+  - first:
+      213: 8057395214944995007
+    second: Armor_1
+  - first:
+      213: -4443136105927648964
+    second: Armor_2
+  - first:
+      213: -3022540174006795666
+    second: Armor_3
+  - first:
+      213: 1164585677716319106
+    second: Armor_4
+  - first:
+      213: 1065521576455249907
+    second: Armor_5
+  - first:
+      213: 7895749817385031138
+    second: Armor_6
+  - first:
+      213: -3562140918039840297
+    second: Armor_7
+  - first:
+      213: 4673541879292138243
+    second: Armor_8
+  - first:
+      213: -1398113343881063737
+    second: Armor_9
+  - first:
+      213: 9052161504835814757
+    second: Armor_10
+  - first:
+      213: 8106906011934125022
+    second: Armor_11
+  - first:
+      213: 7280614561070218308
+    second: Armor_12
+  - first:
+      213: 3966636543240989683
+    second: Armor_13
+  - first:
+      213: -64774034021574184
+    second: Armor_14
+  - first:
+      213: 5880386496244117005
+    second: Armor_15
+  - first:
+      213: 7926149223818998749
+    second: Armor_16
+  - first:
+      213: 714426312288904525
+    second: Armor_17
+  - first:
+      213: 5935675862632836086
+    second: Armor_18
+  - first:
+      213: -4032680140326508588
+    second: Armor_19
+  - first:
+      213: -2901073741589171785
+    second: Armor_20
+  - first:
+      213: 1435430455851767847
+    second: Armor_21
+  - first:
+      213: -949447489718580930
+    second: Armor_22
+  - first:
+      213: 4847397113642301205
+    second: Armor_23
+  - first:
+      213: -819864584622903332
+    second: Armor_24
+  - first:
+      213: -7112477390338708479
+    second: Armor_25
+  - first:
+      213: -1617794363444318258
+    second: Armor_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 1
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Armor_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 52
+        width: 26
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c4e58789f30ab9d0800000000000000
+      internalID: -2757887451555568444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Armor_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 29
+        width: 32
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb68ab1124e91df60800000000000000
+      internalID: 8057395214944995007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Armor_2
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 9
+        width: 28
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c39587d904fc652c0800000000000000
+      internalID: -4443136105927648964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 35d46e2373ca7c74597528c04703bf3e
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Armor_0: -2757887451555568444
+      Armor_1: 8057395214944995007
+      Armor_10: 9052161504835814757
+      Armor_11: 8106906011934125022
+      Armor_12: 7280614561070218308
+      Armor_13: 3966636543240989683
+      Armor_14: -64774034021574184
+      Armor_15: 5880386496244117005
+      Armor_16: 7926149223818998749
+      Armor_17: 714426312288904525
+      Armor_18: 5935675862632836086
+      Armor_19: -4032680140326508588
+      Armor_2: -4443136105927648964
+      Armor_20: -2901073741589171785
+      Armor_21: 1435430455851767847
+      Armor_22: -949447489718580930
+      Armor_23: 4847397113642301205
+      Armor_24: -819864584622903332
+      Armor_25: -7112477390338708479
+      Armor_26: -1617794363444318258
+      Armor_3: -3022540174006795666
+      Armor_4: 1164585677716319106
+      Armor_5: 1065521576455249907
+      Armor_6: 7895749817385031138
+      Armor_7: -3562140918039840297
+      Armor_8: 4673541879292138243
+      Armor_9: -1398113343881063737
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

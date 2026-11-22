@@ -106,7 +106,7 @@ TextureImporter:
         x: 122
         y: 0
         width: 325
-        height: 285
+        height: 274
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,10 +125,10 @@ TextureImporter:
       name: inv_1
       rect:
         serializedVersion: 2
-        x: 0
-        y: 181
-        width: 396
-        height: 160
+        x: 312
+        y: 277
+        width: 135
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -139,6 +139,28 @@ TextureImporter:
       bones: []
       spriteID: 51aaa347181893a43948133e89816ef3
       internalID: -1808056705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hotbar
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 303
+        width: 140
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb80eef2cca28d84299c4cfe96bb2624
+      internalID: -1245398140
       vertices: []
       indices: 
       edges: []
@@ -157,6 +179,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      Hotbar: -1245398140
       inv_0: -8347120380381915188
       inv_1: -1808056705
   mipmapLimitGroupName: 
