@@ -3,19 +3,21 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - NPC
+  - Enemy
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Organics
+  - PlayerInteractions
   - Water
   - UI
+  - Npc
+  - Enemies
   - ItemsInWorld
-  - 
-  - PlayerInteractions
-  - 
-  - 
+  - Organics
+  - Walls
   - 
   - 
   - 

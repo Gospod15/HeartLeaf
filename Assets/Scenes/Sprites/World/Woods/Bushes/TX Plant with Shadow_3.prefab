@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1794776761369539293}
   - component: {fileID: 570275827541556292}
   - component: {fileID: -2005767182331318188}
-  m_Layer: 3
+  m_Layer: 9
   m_Name: TX Plant with Shadow_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}

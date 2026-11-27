@@ -201,7 +201,7 @@ public partial class WorldGenerator : MonoBehaviour
 
         if (string.IsNullOrEmpty(jsonText))
         {
-            Debug.LogWarning("world_gen_config.json не знайдено, Використовуються базові налаштування");
+            Debug.LogWarning("world_gen_config.json не знайдено використовуються базові налаштування");
             return;
         }
 
@@ -284,7 +284,8 @@ public partial class WorldGenerator : MonoBehaviour
         riverSeedOffset = new Vector2(prng.Next(-10000, 10000), prng.Next(-10000, 10000));
         forestSeedOffset = new Vector2(prng.Next(-10000, 10000), prng.Next(-10000, 10000));
     }
-
+    
+    //Перезавантаження
     public void InvalidateCellCache(Vector2Int cellPos) => occupiedCells.Remove(cellPos);
     public void InvalidateCellCache(Vector3Int cellPos) => occupiedCells.Remove(new Vector2Int(cellPos.x, cellPos.y));
     public void InvalidateCellCache(Vector3 worldPos)

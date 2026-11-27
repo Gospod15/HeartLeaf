@@ -10,7 +10,7 @@ public class NPCNameplateUI : MonoBehaviour
     [SerializeField] private RectTransform nameplateRect;
     [SerializeField] private TextMeshProUGUI nameText;
 
-    [Header("Anchoring and Animation")]
+    [Header("Anchoring")]
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, 0.35f, 0f);
     [SerializeField] private float fadeSpeed = 10f;
 

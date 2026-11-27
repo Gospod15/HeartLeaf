@@ -9,7 +9,7 @@ public class ItemInWorldManager : MonoBehaviour
 
     public static readonly List<ItemInWorldManager> ActiveWorldItems = new List<ItemInWorldManager>();
 
-    public const float DEFAULT_DESPAWN_TIME = 480f; 
+    public const float DEFAULT_DESPAWN_TIME = 480f;
 
     [Header("Info item")]
     public ItemData itemData;
@@ -119,6 +119,11 @@ public class ItemInWorldManager : MonoBehaviour
 
         if (added)
         {
+            if (LootUIText.Instance != null)
+            {
+                LootUIText.Instance.ShowLoot(itemData, amount);
+            }
+
             if (TryGetComponent(out WorldObject worldObj))
             {
                 worldObj.DestroyWorldObject();
@@ -144,7 +149,8 @@ public class ItemInWorldManager : MonoBehaviour
         int amount = 1,
         int durability = -1,
         GameObject fallbackPrefab = null,
-        float lifetime = DEFAULT_DESPAWN_TIME)
+        float lifetime = DEFAULT_DESPAWN_TIME,
+        bool showLootUI = true)
     {
         if (item == null || amount <= 0) return null;
 
@@ -171,6 +177,11 @@ public class ItemInWorldManager : MonoBehaviour
         if (droppedObj.TryGetComponent(out ItemInWorldManager worldItem))
         {
             worldItem.Initialize(item, amount, durability, hasCustomPrefab, lifetime);
+
+            if (showLootUI && LootUIText.Instance != null)
+            {
+                LootUIText.Instance.ShowLoot(item, -amount);
+            }
         }
 
         return worldItem;

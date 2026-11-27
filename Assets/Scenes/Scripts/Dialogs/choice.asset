@@ -10,14 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4ea187279a25b65498fd0322436814ad, type: 3}
-  m_Name: NewDialogue
+  m_Name: choice
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   npcName: Bob
-  npcPortrait: {fileID: -2757887451555568444, guid: a8563a854759cf74790459afb27a56ea, type: 3}
-  entryPoints: []
+  npcPortrait: {fileID: 4455026715637103889, guid: ad8b2d8c215dcfe46842ac4ea33d76bf, type: 3}
+  emotionPortraits:
+  - emotion: 0
+    idleSprite: {fileID: 6275290398382190764, guid: 4f8c4c96c011a8e41bcb46edb982eca6, type: 3}
+    talkingSprite: {fileID: -4312496288542762272, guid: 4f8c4c96c011a8e41bcb46edb982eca6, type: 3}
+  entryPoints:
+  - startNodeId: start
+    conditions: []
   nodes:
   - nodeId: start
-    text: Hello whats up bro, how u doing
+    emotion: 0
+    text: 'Hello '
     nextNodeId: 
     endDialogueHere: 0
     choices:
@@ -30,12 +37,14 @@ MonoBehaviour:
       actionTriggerId: 
       conditions: []
   - nodeId: phrase1
+    emotion: 0
     text: this is test dialog
     nextNodeId: 
     endDialogueHere: 0
     choices: []
   - nodeId: phrase3
+    emotion: 0
     text: okay see you later
     nextNodeId: 
-    endDialogueHere: 0
+    endDialogueHere: 1
     choices: []

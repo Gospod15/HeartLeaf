@@ -1,6 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
@@ -11,8 +12,8 @@ public class CameraController : MonoBehaviour
     public Transform target;
     [SerializeField] private Vector2 baseOffset = new Vector2(0f, 0.5f);
 
-    [Header("Smooth of following")]
-    [Tooltip("Time follofing (less = sharp, more = smoother)")]
+    [Header("Smooth Following")]
+    [Tooltip("Follow smoothing time (less = sharper, more = smoother)")]
     [SerializeField] private float followSmoothTime = 0.14f;
 
     [Header("Look-Ahead")]
@@ -20,12 +21,27 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float sprintLookAhead = 1.8f;
     [SerializeField] private float lookAheadSmoothTime = 0.25f;
 
-    [Header("Zoom And Sprint")]
-    [SerializeField] private float zoomStep = 1f;
-    [SerializeField] private float minZoom = 3.5f;
-    [SerializeField] private float maxZoom = 10f;
-    [SerializeField] private float zoomSmoothTime = 0.2f;
-    [SerializeField] private float sprintZoomBonus = 1.15f;
+    [Header("Pixel Perfect Smooth Zoom & Sprint")]
+    [Tooltip("Base resolution at 1.0 zoom scale")]
+    [SerializeField] private Vector2Int baseReferenceResolution = new Vector2Int(960, 540);
+    [Tooltip("Starting zoom multiplier")]
+    [SerializeField] private float startZoomMultiplier = 2.0f;
+    [Tooltip("Minimum multiplier (max zoom out)")]
+    [SerializeField] private float minZoomMultiplier = 0.75f;
+    [Tooltip("Maximum multiplier (max zoom in)")]
+    [SerializeField] private float maxZoomMultiplier = 5.0f;
+    [Tooltip("Mouse scroll sensitivity")]
+    [SerializeField] private float scrollSensitivity = 0.35f;
+    [Tooltip("Zoom smoothing time")]
+    [SerializeField] private float zoomSmoothTime = 0.25f;
+    [Tooltip("Zoom out amount while sprinting")]
+    [SerializeField] private float sprintZoomOutMultiplier = 0.25f;
+
+    [Header("Fallback Zoom (without PixelPerfectCamera)")]
+    [SerializeField] private float fallbackZoomStep = 1f;
+    [SerializeField] private float fallbackMinZoom = 2.5f;
+    [SerializeField] private float fallbackMaxZoom = 14f;
+    [SerializeField] private float fallbackSprintBonus = 1.15f;
 
     [Header("X-Ray")]
     public LayerMask treeLayer;
@@ -35,10 +51,15 @@ public class CameraController : MonoBehaviour
     public float yOffsetCheck = 0.5f;
 
     private Camera cam;
+    private PixelPerfectCamera pixelPerfectCam;
     private PlayerMovement playerMovement;
 
-    private float baseTargetZoom;
-    private float currentZoomVelocity;
+    private float targetZoomMultiplier;
+    private float currentZoomMultiplier;
+    private float zoomMultiplierVelocity;
+
+    private float baseTargetOrthoSize;
+    private float orthoZoomVelocity;
     private float fixedZ = -10f;
 
     private Vector3 followVelocity;
@@ -60,16 +81,28 @@ public class CameraController : MonoBehaviour
         }
         Instance = this;
         cam = GetComponent<Camera>();
+        pixelPerfectCam = GetComponent<PixelPerfectCamera>();
     }
 
     private void Start()
     {
-        baseTargetZoom = cam.orthographicSize;
+        baseTargetOrthoSize = cam.orthographicSize;
+
+        if (pixelPerfectCam != null && baseReferenceResolution.x <= 0)
+        {
+            baseReferenceResolution = new Vector2Int(pixelPerfectCam.refResolutionX, pixelPerfectCam.refResolutionY);
+        }
+
+        targetZoomMultiplier = Mathf.Clamp(startZoomMultiplier, minZoomMultiplier, maxZoomMultiplier);
+        currentZoomMultiplier = targetZoomMultiplier;
+
         if (target != null)
         {
             playerMovement = target.GetComponent<PlayerMovement>();
             transform.position = new Vector3(target.position.x + baseOffset.x, target.position.y + baseOffset.y, fixedZ);
         }
+
+        ApplyPixelPerfectZoom();
     }
 
     private void LateUpdate()
@@ -86,28 +119,85 @@ public class CameraController : MonoBehaviour
 
     private void HandleZoom()
     {
-        float scrollInput = 0f;
+        float scrollDelta = 0f;
         if (Mouse.current != null && (UIManager.Instance == null || !UIManager.Instance.IsGameplayInputBlocked))
         {
             float rawScroll = Mouse.current.scroll.ReadValue().y;
-            if (rawScroll > 0f) scrollInput = 1f;
-            else if (rawScroll < 0f) scrollInput = -1f;
+            if (Mathf.Abs(rawScroll) > 0.01f)
+            {
+                // Нормалізуємо значення прокрутки коліщатка
+                scrollDelta = Mathf.Sign(rawScroll);
+            }
         }
 
-        if (scrollInput != 0f)
+        if (pixelPerfectCam != null && pixelPerfectCam.enabled)
         {
-            baseTargetZoom = Mathf.Clamp(baseTargetZoom - scrollInput * zoomStep, minZoom, maxZoom);
+            if (scrollDelta != 0f)
+            {
+                // Пропорційний крок для плавного зуму на будь-якій дистанції
+                float step = scrollSensitivity * Mathf.Max(0.6f, targetZoomMultiplier * 0.5f);
+                targetZoomMultiplier = Mathf.Clamp(
+                    targetZoomMultiplier + scrollDelta * step,
+                    minZoomMultiplier,
+                    maxZoomMultiplier
+                );
+            }
+
+            bool isSprinting = playerMovement != null && playerMovement.IsSprinting;
+            float desiredMultiplier = Mathf.Max(
+                minZoomMultiplier * 0.85f,
+                targetZoomMultiplier - (isSprinting ? sprintZoomOutMultiplier : 0f)
+            );
+
+            currentZoomMultiplier = Mathf.SmoothDamp(
+                currentZoomMultiplier,
+                desiredMultiplier,
+                ref zoomMultiplierVelocity,
+                zoomSmoothTime
+            );
+
+            ApplyPixelPerfectZoom();
+            return;
         }
 
-        bool isSprinting = playerMovement != null && playerMovement.IsSprinting;
-        float finalTargetZoom = baseTargetZoom + (isSprinting ? sprintZoomBonus : 0f);
+        // Резервний зум, якщо PixelPerfectCamera вимкнено
+        if (scrollDelta != 0f)
+        {
+            baseTargetOrthoSize = Mathf.Clamp(
+                baseTargetOrthoSize - scrollDelta * fallbackZoomStep,
+                fallbackMinZoom,
+                fallbackMaxZoom
+            );
+        }
+
+        bool sprinting = playerMovement != null && playerMovement.IsSprinting;
+        float finalOrtho = baseTargetOrthoSize + (sprinting ? fallbackSprintBonus : 0f);
 
         cam.orthographicSize = Mathf.SmoothDamp(
             cam.orthographicSize,
-            finalTargetZoom,
-            ref currentZoomVelocity,
+            finalOrtho,
+            ref orthoZoomVelocity,
             zoomSmoothTime
         );
+    }
+
+    private void ApplyPixelPerfectZoom()
+    {
+        if (pixelPerfectCam == null) return;
+
+        float aspect = (float)baseReferenceResolution.y / Mathf.Max(1, baseReferenceResolution.x);
+        float safeMultiplier = Mathf.Max(0.1f, currentZoomMultiplier);
+
+        // Округлюємо до парного числа пікселів для збереження чіткості сітки
+        int rawW = Mathf.RoundToInt(baseReferenceResolution.x / safeMultiplier);
+        int finalW = Mathf.Clamp(rawW / 2 * 2, 160, 1920);
+        int finalH = Mathf.Clamp(Mathf.RoundToInt(finalW * aspect) / 2 * 2, 90, 1080);
+
+        if (pixelPerfectCam.refResolutionX != finalW || pixelPerfectCam.refResolutionY != finalH)
+        {
+            pixelPerfectCam.refResolutionX = finalW;
+            pixelPerfectCam.refResolutionY = finalH;
+        }
     }
 
     private void HandleMovement()

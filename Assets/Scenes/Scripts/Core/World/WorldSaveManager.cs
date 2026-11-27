@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//дані про змінену клітинку (грядка, яма, зрубане дерево)
 [Serializable]
 public class ModifiedCellData
 {
@@ -12,6 +13,7 @@ public class ModifiedCellData
     public byte state;
 }
 
+//дані про об'єкт який поставив гравець
 [Serializable]
 public class PlacedObjectSaveData
 {
@@ -20,6 +22,7 @@ public class PlacedObjectSaveData
     public string objectId;
 }
 
+//дані про викинутий на землю предмет
 [Serializable]
 public class DroppedItemSaveData
 {
@@ -31,6 +34,7 @@ public class DroppedItemSaveData
     public float remainingLifetime;
 }
 
+//один слот всередині скрині
 [Serializable]
 public class ChestSlotSaveData
 {
@@ -39,6 +43,7 @@ public class ChestSlotSaveData
     public int amount;
 }
 
+//збереження конкретної скрині
 [Serializable]
 public class ChestSaveData
 {
@@ -48,6 +53,7 @@ public class ChestSaveData
     public List<ChestSlotSaveData> slots = new List<ChestSlotSaveData>();
 }
 
+//усі зміни в межах одного чанка
 [Serializable]
 public class ChunkSaveData
 {
@@ -57,6 +63,7 @@ public class ChunkSaveData
     public List<PlacedObjectSaveData> placedObjects = new List<PlacedObjectSaveData>();
 }
 
+//головна структура файлу збереження світу
 [Serializable]
 public class WorldSaveFile
 {
@@ -69,6 +76,7 @@ public class WorldSaveFile
     public List<ChestSaveData> chests = new List<ChestSaveData>();
 }
 
+//коротка інформація про сейв для меню вибору світу
 [Serializable]
 public class WorldSaveSummary
 {
@@ -79,6 +87,7 @@ public class WorldSaveSummary
     public string lastSavedUtc;
 }
 
+//зв'язка ID префабу та самого об'єкта для інспектора
 [Serializable]
 public class PrefabEntry
 {
@@ -138,12 +147,18 @@ public class WorldSaveManager : MonoBehaviour
         BuildLookupTables();
     }
 
+    //визначення назви слоту збереження та стартових налаштувань
     private void ResolveActiveSaveSlot()
     {
         string sessionSlot = GameSessionContext.CurrentSaveSlot;
-        activeSaveSlot = !string.IsNullOrWhiteSpace(sessionSlot)
-            ? GameSessionContext.SanitizeFileName(sessionSlot)
-            : GameSessionContext.SanitizeFileName(defaultSaveName);
+        if (!string.IsNullOrWhiteSpace(sessionSlot))
+        {
+            activeSaveSlot = GameSessionContext.SanitizeFileName(sessionSlot);
+        }
+        else
+        {
+            activeSaveSlot = GameSessionContext.SanitizeFileName(defaultSaveName);
+        }
 
         if (GameSessionContext.IsCreatingNewWorld && GameSessionContext.PendingWorldSettings != null)
         {
@@ -152,33 +167,43 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
+    //створення словників для швидкого пошуку предметів і префабів по ID
     private void BuildLookupTables()
     {
         prefabLookup.Clear();
         foreach (var entry in buildablePrefabs)
         {
             if (!string.IsNullOrEmpty(entry.id) && entry.prefab != null)
+            {
                 prefabLookup[entry.id] = entry.prefab;
+            }
         }
 
         itemLookup.Clear();
         foreach (var item in allItems)
         {
             if (item == null) continue;
+
             if (!string.IsNullOrEmpty(item.name))
+            {
                 itemLookup[item.name] = item;
+            }
             if (!string.IsNullOrEmpty(item.itemName) && !itemLookup.ContainsKey(item.itemName))
+            {
                 itemLookup[item.itemName] = item;
+            }
         }
     }
 
+    //пошук гравця на сцені для збереження його позиції та інвентарю
     private void ResolveSaveablePlayer()
     {
         if (saveablePlayer != null) return;
 
-        foreach (var behaviour in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+        MonoBehaviour[] allBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        for (int i = 0; i < allBehaviours.Length; i++)
         {
-            if (behaviour is ISaveablePlayer player)
+            if (allBehaviours[i] is ISaveablePlayer player)
             {
                 saveablePlayer = player;
                 break;
@@ -189,12 +214,15 @@ public class WorldSaveManager : MonoBehaviour
     public ItemData GetItemById(string itemId)
     {
         if (!string.IsNullOrEmpty(itemId) && itemLookup.TryGetValue(itemId, out ItemData item))
+        {
             return item;
+        }
         return null;
     }
 
     private void Start()
     {
+        //якщо створюємо новий світ — чистимо старі дані та робимо перший сейв
         if (GameSessionContext.IsCreatingNewWorld)
         {
             ClearRuntimeWorldData();
@@ -203,6 +231,7 @@ public class WorldSaveManager : MonoBehaviour
             return;
         }
 
+        //якщо генератора світу немає на сцені — вантажимо сейв самі
         if (autoLoadOnStart && WorldGenerator.instance == null)
         {
             if (LoadWorld(out int savedSeed))
@@ -213,6 +242,7 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
+    //очищення тимчасових даних в оперативній пам'яті
     private void ClearRuntimeWorldData()
     {
         modifiedCellsByChunk.Clear();
@@ -221,11 +251,15 @@ public class WorldSaveManager : MonoBehaviour
         savedChestsById.Clear();
     }
 
+    //шлях до папки збережень у AppData/Roaming
     private string GetSavesDirectory()
     {
         string roamingPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string fullDir = Path.Combine(roamingPath, folderName, savesSubfolder);
-        if (!Directory.Exists(fullDir)) Directory.CreateDirectory(fullDir);
+        if (!Directory.Exists(fullDir))
+        {
+            Directory.CreateDirectory(fullDir);
+        }
         return fullDir;
     }
 
@@ -235,16 +269,20 @@ public class WorldSaveManager : MonoBehaviour
         return Path.Combine(GetSavesDirectory(), $"{cleanName}.json");
     }
 
-    private string GetSaveFilePath() => GetSaveFilePath(activeSaveSlot);
-
-    public Vector2Int GetChunkCoord(Vector2Int globalCell)
+    private string GetSaveFilePath()
     {
-        return new Vector2Int(
-            Mathf.FloorToInt((float)globalCell.x / chunkSize),
-            Mathf.FloorToInt((float)globalCell.y / chunkSize)
-        );
+        return GetSaveFilePath(activeSaveSlot);
     }
 
+    //переведення координат клітинки у координати чанка
+    public Vector2Int GetChunkCoord(Vector2Int globalCell)
+    {
+        int cx = Mathf.FloorToInt((float)globalCell.x / chunkSize);
+        int cy = Mathf.FloorToInt((float)globalCell.y / chunkSize);
+        return new Vector2Int(cx, cy);
+    }
+
+    //запис зміни рельєфу (наприклад, скопали землю або зрубали дерево)
     public void RecordNaturalChange(Vector2Int globalCell, byte state)
     {
         Vector2Int chunkCoord = GetChunkCoord(globalCell);
@@ -256,6 +294,7 @@ public class WorldSaveManager : MonoBehaviour
         cells[globalCell] = state;
     }
 
+    //запис поставленого гравцем об'єкта
     public void RecordPlacedObject(Vector2Int globalCell, string objectId)
     {
         Vector2Int chunkCoord = GetChunkCoord(globalCell);
@@ -267,37 +306,58 @@ public class WorldSaveManager : MonoBehaviour
         objects[globalCell] = objectId;
     }
 
+    //видалення об'єкта гравця зі збережень (коли зламав)
     public void RemovePlacedObject(Vector2Int globalCell)
     {
         Vector2Int chunkCoord = GetChunkCoord(globalCell);
         if (placedObjectsByChunk.TryGetValue(chunkCoord, out var objects))
+        {
             objects.Remove(globalCell);
+        }
     }
 
+    //отримання збереженого стану клітинки для генератора
     public byte GetCellState(Vector2Int chunkCoord, Vector2Int globalCell)
     {
-        if (modifiedCellsByChunk.TryGetValue(chunkCoord, out var cells) &&
-            cells.TryGetValue(globalCell, out byte state))
-            return state;
+        if (modifiedCellsByChunk.TryGetValue(chunkCoord, out var cells))
+        {
+            if (cells.TryGetValue(globalCell, out byte state))
+            {
+                return state;
+            }
+        }
         return 0;
     }
 
+    //отримання списку всіх будівель гравця в конкретному чанку
     public Dictionary<Vector2Int, string> GetPlacedObjectsInChunk(Vector2Int chunkCoord)
     {
-        return placedObjectsByChunk.TryGetValue(chunkCoord, out var objects) ? objects : null;
+        if (placedObjectsByChunk.TryGetValue(chunkCoord, out var objects))
+        {
+            return objects;
+        }
+        return null;
     }
 
     public GameObject GetPrefabById(string objectId)
     {
-        return !string.IsNullOrEmpty(objectId) && prefabLookup.TryGetValue(objectId, out GameObject prefab) ? prefab : null;
+        if (!string.IsNullOrEmpty(objectId) && prefabLookup.TryGetValue(objectId, out GameObject prefab))
+        {
+            return prefab;
+        }
+        return null;
     }
 
+    //реєстрація скрині коли її чанк завантажився
     public void RegisterChest(ChestStorage chest)
     {
         if (chest != null)
+        {
             activeChests.Add(chest);
+        }
     }
 
+    //збереження та відписка скрині коли чанк вивантажується
     public void UnregisterChest(ChestStorage chest)
     {
         if (chest != null)
@@ -307,16 +367,15 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
+    //зчитування предметів зі скрині у пам'ять збережень
     public void RecordChestState(ChestStorage chest)
     {
         if (chest == null || string.IsNullOrEmpty(chest.ChestId)) return;
 
-        ChestSaveData data = new ChestSaveData
-        {
-            chestId = chest.ChestId,
-            capacity = chest.Capacity,
-            isLootGenerated = chest.IsLootGenerated
-        };
+        ChestSaveData data = new ChestSaveData();
+        data.chestId = chest.ChestId;
+        data.capacity = chest.Capacity;
+        data.isLootGenerated = chest.IsLootGenerated;
 
         var slots = chest.Slots;
         if (slots != null)
@@ -325,19 +384,24 @@ public class WorldSaveManager : MonoBehaviour
             {
                 if (slots[i] == null || slots[i].IsEmpty) continue;
 
-                string id = !string.IsNullOrEmpty(slots[i].item.name) ? slots[i].item.name : slots[i].item.itemName;
-                data.slots.Add(new ChestSlotSaveData
+                string id = slots[i].item.itemName;
+                if (!string.IsNullOrEmpty(slots[i].item.name))
                 {
-                    slotIndex = i,
-                    itemId = id,
-                    amount = slots[i].amount
-                });
+                    id = slots[i].item.name;
+                }
+
+                ChestSlotSaveData slotSave = new ChestSlotSaveData();
+                slotSave.slotIndex = i;
+                slotSave.itemId = id;
+                slotSave.amount = slots[i].amount;
+                data.slots.Add(slotSave);
             }
         }
 
         savedChestsById[chest.ChestId] = data;
     }
 
+    //відновлення речей у скриню при її появі
     public bool TryRestoreChest(ChestStorage chest)
     {
         if (chest == null || string.IsNullOrEmpty(chest.ChestId)) return false;
@@ -357,68 +421,103 @@ public class WorldSaveManager : MonoBehaviour
         currentWorldSeed = settings.worldSeed;
     }
 
+    //головна функція збереження всього світу у JSON файл
     public void SaveWorld(int seed)
     {
         currentWorldSeed = seed;
         activeWorldSettings.worldSeed = seed;
         if (string.IsNullOrWhiteSpace(activeWorldSettings.worldName))
+        {
             activeWorldSettings.worldName = activeSaveSlot;
+        }
 
         ResolveSaveablePlayer();
 
+        //оновлюємо дані всіх активних скринь перед записом
         foreach (var chest in activeChests)
         {
             if (chest != null)
+            {
                 RecordChestState(chest);
+            }
         }
 
-        WorldSaveFile saveFile = new WorldSaveFile
-        {
-            worldSeed = seed,
-            lastSavedUtc = DateTime.UtcNow.ToString("o"),
-            worldSettings = activeWorldSettings,
-            playerData = saveablePlayer != null ? saveablePlayer.CaptureState() : new PlayerSaveData()
-        };
+        WorldSaveFile saveFile = new WorldSaveFile();
+        saveFile.worldSeed = seed;
+        saveFile.lastSavedUtc = DateTime.UtcNow.ToString("o");
+        saveFile.worldSettings = activeWorldSettings;
 
+        if (saveablePlayer != null)
+        {
+            saveFile.playerData = saveablePlayer.CaptureState();
+        }
+        else
+        {
+            saveFile.playerData = new PlayerSaveData();
+        }
+
+        //збираємо всі чанки де є зміни або будівлі
         HashSet<Vector2Int> allChunks = new HashSet<Vector2Int>(modifiedCellsByChunk.Keys);
         allChunks.UnionWith(placedObjectsByChunk.Keys);
 
         foreach (var chunkCoord in allChunks)
         {
-            ChunkSaveData chunkData = new ChunkSaveData { chunkX = chunkCoord.x, chunkY = chunkCoord.y };
+            ChunkSaveData chunkData = new ChunkSaveData();
+            chunkData.chunkX = chunkCoord.x;
+            chunkData.chunkY = chunkCoord.y;
 
             if (modifiedCellsByChunk.TryGetValue(chunkCoord, out var cells))
             {
                 foreach (var kvp in cells)
-                    chunkData.modifiedCells.Add(new ModifiedCellData { x = kvp.Key.x, y = kvp.Key.y, state = kvp.Value });
+                {
+                    ModifiedCellData cellSave = new ModifiedCellData();
+                    cellSave.x = kvp.Key.x;
+                    cellSave.y = kvp.Key.y;
+                    cellSave.state = kvp.Value;
+                    chunkData.modifiedCells.Add(cellSave);
+                }
             }
 
             if (placedObjectsByChunk.TryGetValue(chunkCoord, out var objects))
             {
                 foreach (var kvp in objects)
-                    chunkData.placedObjects.Add(new PlacedObjectSaveData { x = kvp.Key.x, y = kvp.Key.y, objectId = kvp.Value });
+                {
+                    PlacedObjectSaveData objSave = new PlacedObjectSaveData();
+                    objSave.x = kvp.Key.x;
+                    objSave.y = kvp.Key.y;
+                    objSave.objectId = kvp.Value;
+                    chunkData.placedObjects.Add(objSave);
+                }
             }
 
             if (chunkData.modifiedCells.Count > 0 || chunkData.placedObjects.Count > 0)
+            {
                 saveFile.chunks.Add(chunkData);
+            }
         }
 
+        //збираємо всі предмети що лежать на землі
         foreach (var worldItem in ItemInWorldManager.ActiveWorldItems)
         {
             if (worldItem == null || worldItem.itemData == null || worldItem.amount <= 0 || worldItem.RemainingLifetime <= 0f)
-                continue;
-
-            string id = !string.IsNullOrEmpty(worldItem.itemData.name) ? worldItem.itemData.name : worldItem.itemData.itemName;
-
-            saveFile.droppedItems.Add(new DroppedItemSaveData
             {
-                itemId = id,
-                posX = worldItem.transform.position.x,
-                posY = worldItem.transform.position.y,
-                amount = worldItem.amount,
-                durability = worldItem.durability,
-                remainingLifetime = worldItem.RemainingLifetime
-            });
+                continue;
+            }
+
+            string id = worldItem.itemData.itemName;
+            if (!string.IsNullOrEmpty(worldItem.itemData.name))
+            {
+                id = worldItem.itemData.name;
+            }
+
+            DroppedItemSaveData dropSave = new DroppedItemSaveData();
+            dropSave.itemId = id;
+            dropSave.posX = worldItem.transform.position.x;
+            dropSave.posY = worldItem.transform.position.y;
+            dropSave.amount = worldItem.amount;
+            dropSave.durability = worldItem.durability;
+            dropSave.remainingLifetime = worldItem.RemainingLifetime;
+            saveFile.droppedItems.Add(dropSave);
         }
 
         foreach (var chestData in savedChestsById.Values)
@@ -426,9 +525,11 @@ public class WorldSaveManager : MonoBehaviour
             saveFile.chests.Add(chestData);
         }
 
-        File.WriteAllText(GetSaveFilePath(), JsonUtility.ToJson(saveFile, true));
+        string json = JsonUtility.ToJson(saveFile, true);
+        File.WriteAllText(GetSaveFilePath(), json);
     }
 
+    //завантаження світу з JSON файлу
     public bool LoadWorld(out int loadedSeed)
     {
         loadedSeed = 0;
@@ -454,8 +555,11 @@ public class WorldSaveManager : MonoBehaviour
         activeWorldSettings = saveFile.worldSettings ?? new WorldSettingsData();
         activeWorldSettings.worldSeed = loadedSeed;
         if (string.IsNullOrWhiteSpace(activeWorldSettings.worldName))
+        {
             activeWorldSettings.worldName = activeSaveSlot;
+        }
 
+        //відновлення стану гравця
         ResolveSaveablePlayer();
         if (saveablePlayer != null && saveFile.playerData != null && saveFile.playerData.hasData)
         {
@@ -464,6 +568,7 @@ public class WorldSaveManager : MonoBehaviour
 
         ClearRuntimeWorldData();
 
+        //завантаження змін по чанках у словники
         foreach (var chunkData in saveFile.chunks)
         {
             Vector2Int chunkCoord = new Vector2Int(chunkData.chunkX, chunkData.chunkY);
@@ -471,59 +576,76 @@ public class WorldSaveManager : MonoBehaviour
             if (chunkData.modifiedCells != null && chunkData.modifiedCells.Count > 0)
             {
                 var cellDict = new Dictionary<Vector2Int, byte>();
-                foreach (var cell in chunkData.modifiedCells)
+                for (int i = 0; i < chunkData.modifiedCells.Count; i++)
+                {
+                    var cell = chunkData.modifiedCells[i];
                     cellDict[new Vector2Int(cell.x, cell.y)] = cell.state;
+                }
                 modifiedCellsByChunk[chunkCoord] = cellDict;
             }
 
             if (chunkData.placedObjects != null && chunkData.placedObjects.Count > 0)
             {
                 var objDict = new Dictionary<Vector2Int, string>();
-                foreach (var obj in chunkData.placedObjects)
+                for (int i = 0; i < chunkData.placedObjects.Count; i++)
+                {
+                    var obj = chunkData.placedObjects[i];
                     objDict[new Vector2Int(obj.x, obj.y)] = obj.objectId;
+                }
                 placedObjectsByChunk[chunkCoord] = objDict;
             }
         }
 
         if (saveFile.droppedItems != null)
+        {
             pendingDroppedItems.AddRange(saveFile.droppedItems);
+        }
 
         if (saveFile.chests != null)
         {
-            foreach (var chestData in saveFile.chests)
+            for (int i = 0; i < saveFile.chests.Count; i++)
             {
+                var chestData = saveFile.chests[i];
                 if (!string.IsNullOrEmpty(chestData.chestId))
+                {
                     savedChestsById[chestData.chestId] = chestData;
+                }
             }
         }
 
         foreach (var chest in activeChests)
         {
             if (chest != null)
+            {
                 TryRestoreChest(chest);
+            }
         }
 
         return true;
     }
 
+    //спавн викинутих предметів назад у світ після генерації карти
     public void RestoreDroppedItems()
     {
         if (pendingDroppedItems.Count == 0) return;
 
-        foreach (var savedItem in pendingDroppedItems)
+        for (int i = 0; i < pendingDroppedItems.Count; i++)
         {
+            var savedItem = pendingDroppedItems[i];
             if (savedItem.remainingLifetime <= 0f) continue;
 
             ItemData itemData = GetItemById(savedItem.itemId);
             if (itemData != null)
             {
+                Vector3 dropPos = new Vector3(savedItem.posX, savedItem.posY, 0f);
                 ItemInWorldManager.SpawnDrop(
                     itemData,
-                    new Vector3(savedItem.posX, savedItem.posY, 0f),
+                    dropPos,
                     savedItem.amount,
                     savedItem.durability,
                     null,
-                    savedItem.remainingLifetime
+                    savedItem.remainingLifetime,
+                    false
                 );
             }
         }
@@ -531,6 +653,7 @@ public class WorldSaveManager : MonoBehaviour
         pendingDroppedItems.Clear();
     }
 
+    //збереження гри та вихід у головне меню
     public void SaveAndExitToMenu(string menuSceneName)
     {
         if (!hasSavedOnExit)
@@ -543,6 +666,7 @@ public class WorldSaveManager : MonoBehaviour
         SceneManager.LoadScene(menuSceneName);
     }
 
+    //отримання списку всіх файлів збережень для меню вибору
     public List<WorldSaveSummary> GetAllSaveSlots()
     {
         List<WorldSaveSummary> results = new List<WorldSaveSummary>();
@@ -550,24 +674,23 @@ public class WorldSaveManager : MonoBehaviour
         if (!Directory.Exists(dir)) return results;
 
         string[] files = Directory.GetFiles(dir, "*.json");
-        foreach (string file in files)
+        for (int i = 0; i < files.Length; i++)
         {
             try
             {
-                WorldSaveFile saveFile = JsonUtility.FromJson<WorldSaveFile>(File.ReadAllText(file));
+                WorldSaveFile saveFile = JsonUtility.FromJson<WorldSaveFile>(File.ReadAllText(files[i]));
                 if (saveFile == null) continue;
 
-                string slotName = Path.GetFileNameWithoutExtension(file);
+                string slotName = Path.GetFileNameWithoutExtension(files[i]);
                 WorldSettingsData settings = saveFile.worldSettings ?? new WorldSettingsData();
 
-                results.Add(new WorldSaveSummary
-                {
-                    saveSlotName = slotName,
-                    worldName = !string.IsNullOrWhiteSpace(settings.worldName) ? settings.worldName : slotName,
-                    worldSeed = saveFile.worldSeed,
-                    difficulty = settings.difficulty,
-                    lastSavedUtc = saveFile.lastSavedUtc
-                });
+                WorldSaveSummary summary = new WorldSaveSummary();
+                summary.saveSlotName = slotName;
+                summary.worldName = !string.IsNullOrWhiteSpace(settings.worldName) ? settings.worldName : slotName;
+                summary.worldSeed = saveFile.worldSeed;
+                summary.difficulty = settings.difficulty;
+                summary.lastSavedUtc = saveFile.lastSavedUtc;
+                results.Add(summary);
             }
             catch
             {
@@ -586,9 +709,12 @@ public class WorldSaveManager : MonoBehaviour
     {
         string path = GetSaveFilePath(saveSlotName);
         if (File.Exists(path))
+        {
             File.Delete(path);
+        }
     }
 
+    //автозбереження при закритті вікна гри
     private void OnApplicationQuit()
     {
         if (!hasSavedOnExit && instance == this)
@@ -598,6 +724,7 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
+    //автозбереження при знищенні об'єкта менеджера
     private void OnDestroy()
     {
         if (!hasSavedOnExit && instance == this)

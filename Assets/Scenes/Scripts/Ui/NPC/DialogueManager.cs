@@ -8,8 +8,9 @@ public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance { get; private set; }
 
-    [Header("Text Settings")]
+    [Header("Text & Portrait Settings")]
     [SerializeField] private float typingSpeed = 0.025f;
+    [SerializeField] private float mouthToggleInterval = 0.09f;
     [SerializeField] private DialogueUI dialogueUI;
 
     public bool IsDialogueActive { get; private set; }
@@ -20,6 +21,9 @@ public class DialogueManager : MonoBehaviour
     private DialogueData currentDialogue;
     private DialogueNode currentNode;
     private NPCInteractable currentNPC;
+
+    private Sprite currentIdleSprite;
+    private Sprite currentTalkingSprite;
 
     private Coroutine typingCoroutine;
     private bool isTyping = false;
@@ -38,38 +42,48 @@ public class DialogueManager : MonoBehaviour
 
     private void Update()
     {
-        if (!IsDialogueActive) return;
-        if (Time.frameCount == dialogueStartFrame) return;
-
-        bool advancePressed = Keyboard.current != null &&
-                              (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame);
-
-        if (advancePressed)
+        if (!IsDialogueActive || Time.frameCount == dialogueStartFrame)
         {
-            if (isTyping)
+            return;
+        }
+
+        if (Keyboard.current == null)
+        {
+            return;
+        }
+
+        bool advancePressed = Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame;
+        if (!advancePressed)
+        {
+            return;
+        }
+
+        if (isTyping)
+        {
+            CompleteTypingImmediately();
+            return;
+        }
+
+        if (!isShowingChoices && currentNode != null)
+        {
+            List<DialogueChoice> availableChoices = GetAvailableChoices(currentNode);
+            if (availableChoices.Count > 0)
             {
-                CompleteTypingImmediately();
+                ShowChoices(availableChoices);
             }
-            else if (!isShowingChoices && currentNode != null)
+            else
             {
-                List<DialogueChoice> availableChoices = GetAvailableChoices(currentNode);
-                if (availableChoices.Count > 0)
-                {
-                    isShowingChoices = true;
-                    if (dialogueUI != null)
-                        dialogueUI.DisplayChoices(availableChoices, OnChoiceSelected);
-                }
-                else
-                {
-                    AdvanceToNextNode();
-                }
+                AdvanceToNextNode();
             }
         }
     }
 
     public void StartDialogue(DialogueData dialogue, NPCInteractable npc = null)
     {
-        if (dialogue == null || dialogue.nodes == null || dialogue.nodes.Count == 0) return;
+        if (dialogue == null || dialogue.nodes == null || dialogue.nodes.Count == 0)
+        {
+            return;
+        }
 
         currentDialogue = dialogue;
         currentNPC = npc;
@@ -77,21 +91,29 @@ public class DialogueManager : MonoBehaviour
         dialogueStartFrame = Time.frameCount;
 
         if (NPCNameplateUI.Instance != null)
+        {
             NPCNameplateUI.Instance.Hide();
+        }
 
         if (UIManager.Instance != null)
+        {
             UIManager.Instance.SetDialogueState(true);
+        }
 
         if (dialogueUI != null)
         {
             dialogueUI.Show();
-            string speaker = npc != null && !string.IsNullOrEmpty(npc.DisplayName)
-                ? npc.DisplayName
-                : dialogue.npcName;
+
+            string speaker = dialogue.npcName;
+            if (npc != null && !string.IsNullOrEmpty(npc.DisplayName))
+            {
+                speaker = npc.DisplayName;
+            }
+
             dialogueUI.SetSpeaker(speaker, dialogue.npcPortrait);
         }
 
-        DialogueNode startNode = dialogue.GetStartNode(EvaluateCondition);
+        DialogueNode startNode = dialogue.GetStartNode();
         ShowNode(startNode);
     }
 
@@ -105,64 +127,126 @@ public class DialogueManager : MonoBehaviour
 
         currentNode = node;
         isShowingChoices = false;
+        StopTypingCoroutine();
 
-        if (typingCoroutine != null)
-            StopCoroutine(typingCoroutine);
+        UpdatePortraitSpritesForNode(node);
 
         List<DialogueChoice> availableChoices = GetAvailableChoices(node);
-
         if (string.IsNullOrEmpty(node.text) && availableChoices.Count > 0)
         {
             isTyping = false;
-            isShowingChoices = true;
-            if (dialogueUI != null)
-                dialogueUI.DisplayChoices(availableChoices, OnChoiceSelected);
+            ShowChoices(availableChoices);
             return;
         }
 
         typingCoroutine = StartCoroutine(TypeTextRoutine(node.text));
     }
 
-    private void AdvanceToNextNode()
+    // Підбирає пару спрайтів (звичайний + розмовний) для поточної репліки
+    private void UpdatePortraitSpritesForNode(DialogueNode node)
     {
-        if (currentNode == null || currentDialogue == null)
+        currentIdleSprite = currentDialogue != null ? currentDialogue.npcPortrait : null;
+        currentTalkingSprite = currentIdleSprite;
+
+        if (currentDialogue != null)
         {
-            EndDialogue();
-            return;
+            EmotionPortrait pair = currentDialogue.GetEmotionPortrait(node.emotion);
+            if (pair != null)
+            {
+                if (pair.idleSprite != null)
+                    currentIdleSprite = pair.idleSprite;
+
+                currentTalkingSprite = pair.talkingSprite != null ? pair.talkingSprite : currentIdleSprite;
+            }
         }
 
-        if (currentNode.endDialogueHere)
+        if (dialogueUI != null)
         {
-            EndDialogue();
-            return;
+            dialogueUI.SetPortrait(currentIdleSprite);
         }
-
-        DialogueNode nextNode = !string.IsNullOrEmpty(currentNode.nextNodeId)
-            ? currentDialogue.GetNode(currentNode.nextNodeId)
-            : currentDialogue.GetNextSequentialNode(currentNode);
-
-        if (nextNode != null)
-            ShowNode(nextNode);
-        else
-            EndDialogue();
     }
 
+    private void AdvanceToNextNode()
+    {
+        if (currentNode == null || currentDialogue == null || currentNode.endDialogueHere)
+        {
+            EndDialogue();
+            return;
+        }
+
+        DialogueNode nextNode;
+        if (!string.IsNullOrEmpty(currentNode.nextNodeId))
+        {
+            nextNode = currentDialogue.GetNode(currentNode.nextNodeId);
+        }
+        else
+        {
+            nextNode = currentDialogue.GetNextSequentialNode(currentNode);
+        }
+
+        if (nextNode != null)
+        {
+            ShowNode(nextNode);
+        }
+        else
+        {
+            EndDialogue();
+        }
+    }
+
+    // Друкує текст по літерах і анімує відкриття/закриття рота
     private IEnumerator TypeTextRoutine(string fullText)
     {
         isTyping = true;
+
         if (dialogueUI != null)
         {
             dialogueUI.ClearChoices();
             dialogueUI.SetBodyText(string.Empty);
+            dialogueUI.SetPortrait(currentIdleSprite);
         }
 
         string safeText = fullText ?? string.Empty;
+        WaitForSeconds wait = new WaitForSeconds(typingSpeed);
+
+        float mouthTimer = 0f;
+        bool mouthOpen = false;
+
         for (int i = 0; i <= safeText.Length; i++)
         {
             if (dialogueUI != null)
+            {
                 dialogueUI.SetBodyText(safeText.Substring(0, i));
 
-            yield return new WaitForSeconds(typingSpeed);
+                // Перевіряємо поточну літеру: на пробілах і розділових знаках рот закритий
+                if (i > 0 && i <= safeText.Length)
+                {
+                    char currentChar = safeText[i - 1];
+                    if (char.IsLetterOrDigit(currentChar))
+                    {
+                        mouthTimer += typingSpeed;
+                        if (mouthTimer >= mouthToggleInterval)
+                        {
+                            mouthTimer = 0f;
+                            mouthOpen = !mouthOpen;
+                            dialogueUI.SetPortrait(mouthOpen ? currentTalkingSprite : currentIdleSprite);
+                        }
+                    }
+                    else
+                    {
+                        mouthOpen = false;
+                        dialogueUI.SetPortrait(currentIdleSprite);
+                    }
+                }
+            }
+
+            yield return wait;
+        }
+
+        // Після завершення фрази закриваємо рот
+        if (dialogueUI != null)
+        {
+            dialogueUI.SetPortrait(currentIdleSprite);
         }
 
         isTyping = false;
@@ -171,40 +255,67 @@ public class DialogueManager : MonoBehaviour
 
     private void CompleteTypingImmediately()
     {
-        if (typingCoroutine != null)
-        {
-            StopCoroutine(typingCoroutine);
-            typingCoroutine = null;
-        }
-
+        StopTypingCoroutine();
         isTyping = false;
+
         if (dialogueUI != null && currentNode != null)
+        {
             dialogueUI.SetBodyText(currentNode.text ?? string.Empty);
+            dialogueUI.SetPortrait(currentIdleSprite);
+        }
     }
 
     private List<DialogueChoice> GetAvailableChoices(DialogueNode node)
     {
         List<DialogueChoice> result = new List<DialogueChoice>();
-        if (node.choices == null) return result;
-
-        foreach (var choice in node.choices)
+        if (node.choices == null)
         {
-            if (choice.conditions == null || choice.conditions.Count == 0 ||
-                choice.conditions.TrueForAll(EvaluateCondition))
+            return result;
+        }
+
+        for (int i = 0; i < node.choices.Count; i++)
+        {
+            DialogueChoice choice = node.choices[i];
+            if (AreConditionsMet(choice.conditions))
             {
                 result.Add(choice);
             }
         }
+
         return result;
+    }
+
+    private bool AreConditionsMet(List<DialogueCondition> conditions)
+    {
+        if (conditions == null || conditions.Count == 0)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < conditions.Count; i++)
+        {
+            if (!EvaluateCondition(conditions[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public bool EvaluateCondition(DialogueCondition cond)
     {
-        if (cond == null) return true;
+        if (cond == null)
+        {
+            return true;
+        }
 
         if (cond.type == ConditionType.HasItem)
         {
-            if (cond.itemParam == null || InventoryManager.instance == null) return false;
+            if (cond.itemParam == null || InventoryManager.instance == null)
+            {
+                return false;
+            }
             return InventoryManager.instance.HasItem(cond.itemParam, cond.intParam);
         }
 
@@ -227,29 +338,25 @@ public class DialogueManager : MonoBehaviour
         if (!string.IsNullOrEmpty(choice.actionTriggerId))
         {
             if (currentNPC != null)
+            {
                 currentNPC.TriggerAction(choice.actionTriggerId);
-
+            }
             OnGlobalDialogueAction?.Invoke(choice.actionTriggerId, currentNPC);
         }
 
         if (string.IsNullOrEmpty(choice.nextNodeId))
         {
             EndDialogue();
+            return;
         }
-        else
-        {
-            DialogueNode nextNode = currentDialogue.GetNode(choice.nextNodeId);
-            ShowNode(nextNode);
-        }
+
+        DialogueNode nextNode = currentDialogue.GetNode(choice.nextNodeId);
+        ShowNode(nextNode);
     }
 
     public void EndDialogue()
     {
-        if (typingCoroutine != null)
-        {
-            StopCoroutine(typingCoroutine);
-            typingCoroutine = null;
-        }
+        StopTypingCoroutine();
 
         IsDialogueActive = false;
         isTyping = false;
@@ -259,9 +366,31 @@ public class DialogueManager : MonoBehaviour
         currentNPC = null;
 
         if (dialogueUI != null)
+        {
             dialogueUI.Hide();
+        }
 
         if (UIManager.Instance != null)
+        {
             UIManager.Instance.SetDialogueState(false);
+        }
+    }
+
+    private void ShowChoices(List<DialogueChoice> choices)
+    {
+        isShowingChoices = true;
+        if (dialogueUI != null)
+        {
+            dialogueUI.DisplayChoices(choices, OnChoiceSelected);
+        }
+    }
+
+    private void StopTypingCoroutine()
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
     }
 }

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8997844413197211339}
   - component: {fileID: 3782594027016914780}
   - component: {fileID: 2264198324460704263}
-  m_Layer: 3
+  m_Layer: 9
   m_Name: tree5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -151,5 +151,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TreeScript
   health: 6
+  logItem: {fileID: 0}
   logPrefab: {fileID: 7880113943053705827, guid: 98e509e442353754fa93e3f350243810, type: 3}
   dropAmount: 3
+  fallDuration: 0.65
+  destroyDelayAfterFall: 0.25

@@ -27,12 +27,13 @@ public class ScreenOverlayController : MonoBehaviour
     [SerializeField] private LayerMask[] exteriorPropsLayers;
     [SerializeField] private Vector2 hideBoxSize = new Vector2(50f, 35f);
     [SerializeField] private float hideCheckInterval = 0.2f;
-
+        
     private SpriteRenderer overlayRenderer;
     private Coroutine activeFadeCoroutine;
     private Coroutine debuffTimerCoroutine;
 
     private int activeHousesCount = 0;
+    public bool IsIndoors => activeHousesCount > 0;
     private float debuffTargetAlpha = 0f;
     private Color currentDebuffColor;
     private float hideCheckTimer = 0f;
@@ -247,6 +248,8 @@ public class ScreenOverlayController : MonoBehaviour
         foreach (var hit in hits)
         {
             if (hit == null) continue;
+            if (hit.GetComponentInParent<NpcMovement>() != null) continue;
+
             SpriteRenderer sr = hit.GetComponentInParent<SpriteRenderer>();
             if (sr != null && sr.enabled)
             {

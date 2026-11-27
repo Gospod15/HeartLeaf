@@ -42,6 +42,12 @@ public class DialogueUI : MonoBehaviour
         if (npcNameText != null)
             npcNameText.text = speakerName;
 
+        SetPortrait(portrait);
+    }
+
+    // Оновлює поточний спрайт портрета (для емоцій та анімації рота)
+    public void SetPortrait(Sprite portrait)
+    {
         if (npcPortraitImage != null)
         {
             npcPortraitImage.sprite = portrait;

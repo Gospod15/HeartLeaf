@@ -43,6 +43,12 @@ public class HouseInteriorController : MonoBehaviour
 
     private void StartRoofFade(float targetAlpha)
     {
+        if (!isActiveAndEnabled)
+        {
+            SetRoofAlpha(targetAlpha);
+            return;
+        }
+
         if (fadeCoroutine != null)
             StopCoroutine(fadeCoroutine);
 

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6876256585577901530}
   - component: {fileID: -6589075987189807566}
   - component: {fileID: 2801472897659943246}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: NaturalRock
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -14,48 +14,74 @@ public class NPCInteractable : MonoBehaviour, IInteractable
 
     private SpriteRenderer spriteRenderer;
 
-    public string DisplayName => !string.IsNullOrEmpty(npcDisplayName)
-        ? npcDisplayName
-        : (defaultDialogue != null ? defaultDialogue.npcName : string.Empty);
+    //отримання імені NPC (локального або з файлу діалогу)
+    public string DisplayName
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(npcDisplayName))
+            {
+                return npcDisplayName;
+            }
+            if (defaultDialogue != null)
+            {
+                return defaultDialogue.npcName;
+            }
+            return string.Empty;
+        }
+    }
 
-    public string InteractionPrompt => !string.IsNullOrEmpty(interactionPrompt)
-        ? $"{interactionPrompt} ({DisplayName})"
-        : DisplayName;
+    //текст підказки при наближення до NPC
+    public string InteractionPrompt
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(interactionPrompt))
+            {
+                return $"{interactionPrompt} ({DisplayName})";
+            }
+            return DisplayName;
+        }
+    }
 
     private void Awake()
     {
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
+    //перевірка чи можна почати розмову
     public bool CanInteract(GameObject interactor)
     {
-        return defaultDialogue != null &&
-               DialogueManager.Instance != null &&
-               !DialogueManager.Instance.IsDialogueActive;
+        if (defaultDialogue == null || DialogueManager.Instance == null)
+        {
+            return false;
+        }
+        return !DialogueManager.Instance.IsDialogueActive;
     }
 
+    //початок взаємодії з NPC
     public void Interact(GameObject interactor)
     {
-        if (!CanInteract(interactor)) return;
-
-        if (facePlayerOnInteract && spriteRenderer != null && interactor != null)
+        if (!CanInteract(interactor))
         {
-            float dirX = interactor.transform.position.x - transform.position.x;
-            if (Mathf.Abs(dirX) > 0.05f)
-                spriteRenderer.flipX = dirX < 0f;
+            return;
         }
 
         DialogueManager.Instance.StartDialogue(defaultDialogue, this);
     }
 
+    //зміна поточного діалогу NPC під час гри
     public void SetDialogue(DialogueData newDialogue)
     {
         defaultDialogue = newDialogue;
     }
 
+    //запуск події з діалогу на цьому NPC
     public void TriggerAction(string actionId)
     {
         if (!string.IsNullOrEmpty(actionId))
+        {
             onDialogueAction?.Invoke(actionId);
+        }
     }
 }
