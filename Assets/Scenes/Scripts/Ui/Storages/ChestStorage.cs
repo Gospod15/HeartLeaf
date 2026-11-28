@@ -1,5 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+
+[Serializable]
+public class WeightedLootTable
+{
+    public ChestLootTable table;
+    [Min(0f)] public float spawnWeight = 50f;
+}
 
 public class ChestStorage : MonoBehaviour, IInteractable
 {
@@ -7,6 +15,11 @@ public class ChestStorage : MonoBehaviour, IInteractable
     [SerializeField] private string chestId;
     [SerializeField] private string chestTitle = "Chest";
     [SerializeField] private int capacity = 12;
+
+    [Header("Loot Settings")]
+    [Tooltip("List of possible loot tables with their spawn weights/chances")]
+    [SerializeField] private List<WeightedLootTable> lootTables = new List<WeightedLootTable>();
+    [Tooltip("Fallback single loot table if the list above is empty")]
     [SerializeField] private ChestLootTable lootTable;
     [SerializeField] private bool generateLootOnStart = true;
 
@@ -114,12 +127,48 @@ public class ChestStorage : MonoBehaviour, IInteractable
         }
     }
 
+    private ChestLootTable SelectLootTable()
+    {
+        if (lootTables != null && lootTables.Count > 0)
+        {
+            float totalWeight = 0f;
+            for (int i = 0; i < lootTables.Count; i++)
+            {
+                if (lootTables[i] != null && lootTables[i].table != null && lootTables[i].spawnWeight > 0f)
+                {
+                    totalWeight += lootTables[i].spawnWeight;
+                }
+            }
+
+            if (totalWeight > 0f)
+            {
+                float roll = UnityEngine.Random.Range(0f, totalWeight);
+                float cumulative = 0f;
+
+                for (int i = 0; i < lootTables.Count; i++)
+                {
+                    var entry = lootTables[i];
+                    if (entry == null || entry.table == null || entry.spawnWeight <= 0f) continue;
+
+                    cumulative += entry.spawnWeight;
+                    if (roll <= cumulative)
+                    {
+                        return entry.table;
+                    }
+                }
+            }
+        }
+
+        return lootTable;
+    }
+
     public void GenerateLoot()
     {
         EnsureInitialized();
-        if (lootTable != null)
+        ChestLootTable chosenTable = SelectLootTable();
+        if (chosenTable != null)
         {
-            lootTable.PopulateSlots(slots);
+            chosenTable.PopulateSlots(slots);
         }
         isLootGenerated = true;
         NotifyChanged();

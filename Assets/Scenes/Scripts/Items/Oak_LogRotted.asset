@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Crumbling oak log
   description: 
   rarity: 0
-  icon: {fileID: 3719068211130651045, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  icon: {fileID: 1067007831, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 0
   isStackable: 1
   maxStackSize: 16

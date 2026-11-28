@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3511cc47562fde47bdd0aad2d665a88, type: 3}
-  m_Name: Ore
+  m_Name: CopperOre
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Copper ore
   description: 
   rarity: 0
-  icon: {fileID: -8868248462342347919, guid: 66d9ccc06e3ecd6479d2f64aa494d48d, type: 3}
+  icon: {fileID: -392974973, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 0
   isStackable: 1
   maxStackSize: 16

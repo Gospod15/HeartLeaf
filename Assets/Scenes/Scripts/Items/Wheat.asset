@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Wheat
   description: 
   rarity: 0
-  icon: {fileID: 164029440, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  icon: {fileID: -7855203551248514480, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 0
   isStackable: 1
   maxStackSize: 16

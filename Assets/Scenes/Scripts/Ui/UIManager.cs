@@ -1,6 +1,11 @@
 using System;
+using System.IO;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,6 +19,19 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject craftingPanel;
     [SerializeField] private GameObject chestPanel;
     [SerializeField] private GameObject pausePanel;
+    [SerializeField] private GameObject pauseSettingsPanel;
+
+    [Header("Player Info UI")]
+    [SerializeField] private TextMeshProUGUI playerNameText;
+
+    [Header("Pause Settings UI")]
+    [SerializeField] private Slider masterVolumeSlider;
+    [SerializeField] private Toggle fullscreenToggle;
+
+    [Header("Scenes & Save Path")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
+    [SerializeField] private string savesFolderName = "Heartleaf";
+    [SerializeField] private string savesSubfolder = "Saves";
 
     [Header("Inventory position")]
     [SerializeField] private Vector2 defaultInventoryPosition = Vector2.zero;
@@ -32,7 +50,8 @@ public class UIManager : MonoBehaviour
     public bool IsInventoryOpen => inventoryPanel != null && inventoryPanel.activeSelf;
     public bool IsShopOpen => shopPanel != null && shopPanel.activeSelf;
     public bool IsChestOpen => chestPanel != null && chestPanel.activeSelf;
-    public bool IsPauseOpen => pausePanel != null && pausePanel.activeSelf;
+    public bool IsPauseOpen => (pausePanel != null && pausePanel.activeSelf) ||
+                               (pauseSettingsPanel != null && pauseSettingsPanel.activeSelf);
     public bool IsDialogueOpen => isDialogueOpen;
 
     public bool IsGameplayInputBlocked =>
@@ -64,6 +83,8 @@ public class UIManager : MonoBehaviour
     {
         CloseAllWindows();
         if (hotbarPanel != null) hotbarPanel.SetActive(true);
+        LoadSettingsUI();
+        UpdatePlayerNameDisplay();
         Time.timeScale = 1f;
     }
 
@@ -80,6 +101,51 @@ public class UIManager : MonoBehaviour
         {
             HandleEscape();
         }
+    }
+
+    public void UpdatePlayerNameDisplay()
+    {
+        if (playerNameText == null) return;
+
+        string resolvedName = ResolveCurrentPlayerName();
+        if (!string.IsNullOrWhiteSpace(resolvedName))
+        {
+            playerNameText.text = resolvedName;
+        }
+    }
+
+    private string ResolveCurrentPlayerName()
+    {
+        if (GameSessionContext.PendingWorldSettings != null &&
+            !string.IsNullOrWhiteSpace(GameSessionContext.PendingWorldSettings.playerName))
+        {
+            return GameSessionContext.PendingWorldSettings.playerName;
+        }
+
+        string slotName = GameSessionContext.CurrentSaveSlot;
+        if (!string.IsNullOrWhiteSpace(slotName))
+        {
+            string roamingPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string savePath = Path.Combine(roamingPath, savesFolderName, savesSubfolder, $"{slotName}.json");
+
+            if (File.Exists(savePath))
+            {
+                try
+                {
+                    WorldSaveFile saveFile = JsonUtility.FromJson<WorldSaveFile>(File.ReadAllText(savePath));
+                    if (saveFile != null && saveFile.worldSettings != null &&
+                        !string.IsNullOrWhiteSpace(saveFile.worldSettings.playerName))
+                    {
+                        return saveFile.worldSettings.playerName;
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        return "Player";
     }
 
     private void HandleTabPressed()
@@ -142,6 +208,10 @@ public class UIManager : MonoBehaviour
             if (ChestUI.Instance != null && ChestUI.Instance.IsOpen)
                 ChestUI.Instance.Close();
         }
+        else
+        {
+            UpdatePlayerNameDisplay();
+        }
 
         if (inventoryRect != null)
             inventoryRect.anchoredPosition = defaultInventoryPosition;
@@ -188,12 +258,111 @@ public class UIManager : MonoBehaviour
 
     public void SetPauseState(bool isPaused)
     {
+        if (pauseSettingsPanel != null) pauseSettingsPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(isPaused);
         Time.timeScale = isPaused ? 0f : 1f;
     }
 
+    public void ResumeGame()
+    {
+        SetPauseState(false);
+    }
+
+    public void OpenPauseSettings()
+    {
+        LoadSettingsUI();
+        if (pausePanel != null) pausePanel.SetActive(false);
+        if (pauseSettingsPanel != null) pauseSettingsPanel.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    public void ClosePauseSettings()
+    {
+        if (pauseSettingsPanel != null) pauseSettingsPanel.SetActive(false);
+        if (pausePanel != null) pausePanel.SetActive(true);
+    }
+
+    public void SaveAndReturnToMainMenu()
+    {
+        if (InventoryDragController.Instance != null)
+            InventoryDragController.Instance.ReturnHeldItemOnClose();
+
+        if (InventoryManager.instance != null)
+            InventoryManager.instance.ReturnCraftingItemsToInventory();
+
+        TriggerWorldSave();
+
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    private void TriggerWorldSave()
+    {
+        if (WorldSaveManager.instance == null) return;
+
+        Type saveType = WorldSaveManager.instance.GetType();
+        string[] candidateMethods = { "SaveWorld", "SaveGame", "ForceSave", "OnApplicationQuit" };
+
+        for (int i = 0; i < candidateMethods.Length; i++)
+        {
+            MethodInfo method = saveType.GetMethod(
+                candidateMethods[i],
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                Type.EmptyTypes,
+                null
+            );
+
+            if (method != null)
+            {
+                method.Invoke(WorldSaveManager.instance, null);
+                return;
+            }
+        }
+    }
+
+    private void LoadSettingsUI()
+    {
+        float savedVolume = PlayerPrefs.GetFloat("MasterVolume", 1f);
+        AudioListener.volume = savedVolume;
+        if (masterVolumeSlider != null)
+        {
+            masterVolumeSlider.value = savedVolume;
+            masterVolumeSlider.onValueChanged.RemoveAllListeners();
+            masterVolumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+        }
+
+        bool isFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
+        Screen.fullScreen = isFullscreen;
+        if (fullscreenToggle != null)
+        {
+            fullscreenToggle.isOn = isFullscreen;
+            fullscreenToggle.onValueChanged.RemoveAllListeners();
+            fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
+        }
+    }
+
+    public void OnVolumeChanged(float value)
+    {
+        AudioListener.volume = value;
+        PlayerPrefs.SetFloat("MasterVolume", value);
+        PlayerPrefs.Save();
+    }
+
+    public void OnFullscreenChanged(bool isFullscreen)
+    {
+        Screen.fullScreen = isFullscreen;
+        PlayerPrefs.SetInt("Fullscreen", isFullscreen ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
     private void HandleEscape()
     {
+        if (pauseSettingsPanel != null && pauseSettingsPanel.activeSelf)
+        {
+            ClosePauseSettings();
+            return;
+        }
         if (isDialogueOpen && DialogueManager.Instance != null)
         {
             DialogueManager.Instance.EndDialogue();
@@ -220,5 +389,6 @@ public class UIManager : MonoBehaviour
         if (craftingPanel != null) craftingPanel.SetActive(false);
         if (chestPanel != null) chestPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
+        if (pauseSettingsPanel != null) pauseSettingsPanel.SetActive(false);
     }
 }

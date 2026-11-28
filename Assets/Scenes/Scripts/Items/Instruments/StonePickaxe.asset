@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Stone Pickaxe
   description: 
   rarity: 0
-  icon: {fileID: -917194314, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  icon: {fileID: 3719068211130651045, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 2
   isStackable: 0
   maxStackSize: 1

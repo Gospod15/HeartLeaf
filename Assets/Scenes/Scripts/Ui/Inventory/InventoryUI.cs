@@ -12,10 +12,21 @@ public class InventoryUI : MonoBehaviour
         uiSlots = slotsParent.GetComponentsInChildren<InventorySlot>(true);
     }
 
+    private void Start()
+    {
+        if (InventoryManager.instance != null)
+        {
+            InventoryManager.instance.OnInventoryChanged -= RefreshUI;
+            InventoryManager.instance.OnInventoryChanged += RefreshUI;
+            RefreshUI();
+        }
+    }
+
     private void OnEnable()
     {
         if (InventoryManager.instance != null)
         {
+            InventoryManager.instance.OnInventoryChanged -= RefreshUI;
             InventoryManager.instance.OnInventoryChanged += RefreshUI;
             RefreshUI();
         }

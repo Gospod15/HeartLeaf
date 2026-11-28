@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Piece of watermelon
   description: 
   rarity: 0
-  icon: {fileID: 223343566, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  icon: {fileID: 412163408, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 1
   isStackable: 1
   maxStackSize: 16

@@ -73,7 +73,7 @@ TextureImporter:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
-    resizeAlgorithm: 0
+    resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 0
     compressionQuality: 50
@@ -183,7 +183,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 160
-        y: 1
+        y: 34
         width: 112
         height: 30
       alignment: 0
@@ -205,8 +205,8 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 160
-        y: 32
-        width: 64
+        y: 64
+        width: 96
         height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -227,11 +227,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 160
-        y: 96
+        y: 128
         width: 65
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -250,7 +250,7 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 96
-        width: 144
+        width: 160
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -262,6 +262,28 @@ TextureImporter:
       bones: []
       spriteID: 1c715dd4a7a76b74ea5e0772a40c3fac
       internalID: -496629909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MainMenuSprites_7
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 128
+        width: 144
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfe37360acd595847ac7e4e14307ed27
+      internalID: -237372892
       vertices: []
       indices: 
       edges: []
@@ -290,6 +312,7 @@ TextureImporter:
       MainMenuSprites_4: -876844978
       MainMenuSprites_5: -927613409
       MainMenuSprites_6: -496629909
+      MainMenuSprites_7: -237372892
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

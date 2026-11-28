@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Stone Hoe
   description: 
   rarity: 0
-  icon: {fileID: -6099050445329199328, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  icon: {fileID: 4639506938558671751, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 2
   isStackable: 0
   maxStackSize: 1

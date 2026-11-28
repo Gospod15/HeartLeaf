@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c26cee8a5ca40b4a92d21c290d7d253, type: 3}
+  m_Name: Loottable3Armor
+  m_EditorClassIdentifier: Assembly-CSharp::ChestLootTable
+  maxUniqueDrops: 4
+  scatterItemsRandomly: 1
+  entries:
+  - item: {fileID: 11400000, guid: 57b4f3224fbca2344938f607a33bf156, type: 2}
+    dropChance: 80
+    minAmount: 2
+    maxAmount: 5
+  - item: {fileID: 11400000, guid: fa5aea4cdb273aa4b83b63b150532e79, type: 2}
+    dropChance: 46.1
+    minAmount: 3
+    maxAmount: 10
+  - item: {fileID: 11400000, guid: 8e05b98a4e35ab843b61cf552b14e36d, type: 2}
+    dropChance: 81.6
+    minAmount: 2
+    maxAmount: 5

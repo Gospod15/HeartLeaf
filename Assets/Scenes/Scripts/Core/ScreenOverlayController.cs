@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -22,15 +22,24 @@ public class ScreenOverlayController : MonoBehaviour
     [Header("Default Settings")]
     [SerializeField] private float defaultFadeDuration = 0.25f;
 
+    [Header("Exterior Ambient Audio")]
+    [Tooltip("Sources of outdoor ambient sounds (wind, birds, etc.) to mute while indoors")]
+    [SerializeField] private AudioSource[] exteriorAmbientSources;
+    [Tooltip("Multiplier for exterior ambient volume when indoors (0 = completely muted)")]
+    [Range(0f, 1f)][SerializeField] private float indoorExteriorVolumeMultiplier = 0f;
+
     [Header("Exterior Props Hiding")]
     [Tooltip("Layers of exterior props (e.g. Organica) to hide while indoors")]
     [SerializeField] private LayerMask[] exteriorPropsLayers;
+    [Tooltip("Layer of the house interior trigger zone so NPCs inside the house stay visible")]
+    [SerializeField] private LayerMask interiorZoneLayer;
     [SerializeField] private Vector2 hideBoxSize = new Vector2(50f, 35f);
     [SerializeField] private float hideCheckInterval = 0.2f;
-        
+
     private SpriteRenderer overlayRenderer;
     private Coroutine activeFadeCoroutine;
     private Coroutine debuffTimerCoroutine;
+    private Coroutine exteriorAudioCoroutine;
 
     private int activeHousesCount = 0;
     public bool IsIndoors => activeHousesCount > 0;
@@ -39,6 +48,7 @@ public class ScreenOverlayController : MonoBehaviour
     private float hideCheckTimer = 0f;
     private int combinedExteriorMask = 0;
 
+    private float[] initialExteriorVolumes;
     private readonly List<SpriteRenderer> hiddenRenderers = new List<SpriteRenderer>();
 
     private void Awake()
@@ -52,6 +62,7 @@ public class ScreenOverlayController : MonoBehaviour
 
         overlayRenderer = GetComponent<SpriteRenderer>();
         currentDebuffColor = defaultDebuffColor;
+        CacheExteriorAudioVolumes();
         RebuildExteriorLayerMask();
         ApplyImmediate(interiorColor, 0f, interiorSortingOrder);
     }
@@ -62,6 +73,18 @@ public class ScreenOverlayController : MonoBehaviour
         RebuildExteriorLayerMask();
     }
 #endif
+
+    private void CacheExteriorAudioVolumes()
+    {
+        if (exteriorAmbientSources == null) return;
+
+        initialExteriorVolumes = new float[exteriorAmbientSources.Length];
+        for (int i = 0; i < exteriorAmbientSources.Length; i++)
+        {
+            if (exteriorAmbientSources[i] != null)
+                initialExteriorVolumes[i] = exteriorAmbientSources[i].volume;
+        }
+    }
 
     private void RebuildExteriorLayerMask()
     {
@@ -88,21 +111,95 @@ public class ScreenOverlayController : MonoBehaviour
 
     public void EnterInterior(float fadeDuration = -1f)
     {
+        float duration = fadeDuration < 0f ? defaultFadeDuration : fadeDuration;
         activeHousesCount++;
         if (activeHousesCount == 1)
         {
             SetExteriorPropsVisible(false);
-            RefreshOverlayState(fadeDuration < 0f ? defaultFadeDuration : fadeDuration);
+            RefreshOverlayState(duration);
+            FadeExteriorAmbient(indoorExteriorVolumeMultiplier, duration);
         }
     }
 
     public void ExitInterior(float fadeDuration = -1f)
     {
+        float duration = fadeDuration < 0f ? defaultFadeDuration : fadeDuration;
         activeHousesCount = Mathf.Max(0, activeHousesCount - 1);
         if (activeHousesCount == 0)
         {
             SetExteriorPropsVisible(true);
-            RefreshOverlayState(fadeDuration < 0f ? defaultFadeDuration : fadeDuration);
+            RefreshOverlayState(duration);
+            FadeExteriorAmbient(1f, duration);
+        }
+    }
+
+    private void FadeExteriorAmbient(float targetMultiplier, float duration)
+    {
+        if (exteriorAmbientSources == null || exteriorAmbientSources.Length == 0) return;
+
+        if (initialExteriorVolumes == null || initialExteriorVolumes.Length != exteriorAmbientSources.Length)
+            CacheExteriorAudioVolumes();
+
+        if (exteriorAudioCoroutine != null)
+            StopCoroutine(exteriorAudioCoroutine);
+
+        exteriorAudioCoroutine = StartCoroutine(FadeExteriorAmbientRoutine(targetMultiplier, duration));
+    }
+
+    private IEnumerator FadeExteriorAmbientRoutine(float targetMultiplier, float duration)
+    {
+        float[] startVolumes = new float[exteriorAmbientSources.Length];
+        for (int i = 0; i < exteriorAmbientSources.Length; i++)
+        {
+            AudioSource src = exteriorAmbientSources[i];
+            if (src == null) continue;
+
+            startVolumes[i] = src.volume;
+            if (targetMultiplier > 0.001f && !src.isPlaying && src.clip != null)
+                src.Play();
+        }
+
+        if (duration <= 0.001f)
+        {
+            ApplyExteriorAmbientImmediate(targetMultiplier);
+            exteriorAudioCoroutine = null;
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+
+            for (int i = 0; i < exteriorAmbientSources.Length; i++)
+            {
+                AudioSource src = exteriorAmbientSources[i];
+                if (src == null) continue;
+
+                float targetVol = initialExteriorVolumes[i] * targetMultiplier;
+                src.volume = Mathf.Lerp(startVolumes[i], targetVol, t);
+            }
+
+            yield return null;
+        }
+
+        ApplyExteriorAmbientImmediate(targetMultiplier);
+        exteriorAudioCoroutine = null;
+    }
+
+    private void ApplyExteriorAmbientImmediate(float targetMultiplier)
+    {
+        for (int i = 0; i < exteriorAmbientSources.Length; i++)
+        {
+            AudioSource src = exteriorAmbientSources[i];
+            if (src == null) continue;
+
+            float targetVol = initialExteriorVolumes[i] * targetMultiplier;
+            src.volume = targetVol;
+
+            if (targetVol <= 0.001f && src.isPlaying)
+                src.Pause();
         }
     }
 
@@ -240,23 +337,81 @@ public class ScreenOverlayController : MonoBehaviour
 
     private void HidePropsInCameraView()
     {
-        if (combinedExteriorMask == 0) return;
-
         Vector2 center = transform.parent != null ? (Vector2)transform.parent.position : (Vector2)transform.position;
-        Collider2D[] hits = Physics2D.OverlapBoxAll(center, hideBoxSize, 0f, combinedExteriorMask);
 
-        foreach (var hit in hits)
+        if (combinedExteriorMask != 0)
         {
-            if (hit == null) continue;
-            if (hit.GetComponentInParent<NpcMovement>() != null) continue;
-
-            SpriteRenderer sr = hit.GetComponentInParent<SpriteRenderer>();
-            if (sr != null && sr.enabled)
+            Collider2D[] hits = Physics2D.OverlapBoxAll(center, hideBoxSize, 0f, combinedExteriorMask);
+            foreach (var hit in hits)
             {
-                sr.enabled = false;
-                hiddenRenderers.Add(sr);
+                if (hit == null) continue;
+                if (hit.GetComponentInParent<NPCInteractable>() != null || hit.GetComponentInParent<NpcMovement>() != null)
+                    continue;
+
+                SpriteRenderer sr = hit.GetComponentInParent<SpriteRenderer>();
+                if (sr != null && sr.enabled)
+                {
+                    sr.enabled = false;
+                    hiddenRenderers.Add(sr);
+                }
             }
         }
+
+        NPCInteractable[] allNpcs = FindObjectsByType<NPCInteractable>(FindObjectsSortMode.None);
+        Vector2 halfBox = hideBoxSize * 0.5f;
+
+        for (int i = 0; i < allNpcs.Length; i++)
+        {
+            NPCInteractable npc = allNpcs[i];
+            if (npc == null) continue;
+
+            Vector2 npcPos = npc.transform.position;
+            if (Mathf.Abs(npcPos.x - center.x) > halfBox.x || Mathf.Abs(npcPos.y - center.y) > halfBox.y)
+                continue;
+
+            bool isNpcIndoors = IsPointInsideAnyInterior(npcPos);
+
+            SpriteRenderer[] npcRenderers = npc.GetComponentsInChildren<SpriteRenderer>(true);
+            for (int r = 0; r < npcRenderers.Length; r++)
+            {
+                SpriteRenderer sr = npcRenderers[r];
+                if (sr == null) continue;
+
+                if (isNpcIndoors)
+                {
+                    if (!sr.enabled && hiddenRenderers.Contains(sr))
+                    {
+                        sr.enabled = true;
+                        hiddenRenderers.Remove(sr);
+                    }
+                }
+                else if (sr.enabled)
+                {
+                    sr.enabled = false;
+                    if (!hiddenRenderers.Contains(sr))
+                        hiddenRenderers.Add(sr);
+                }
+            }
+        }
+    }
+
+    private bool IsPointInsideAnyInterior(Vector2 point)
+    {
+        if (interiorZoneLayer.value != 0 && Physics2D.OverlapPoint(point, interiorZoneLayer) != null)
+            return true;
+
+        Collider2D[] overlaps = Physics2D.OverlapPointAll(point);
+        for (int i = 0; i < overlaps.Length; i++)
+        {
+            Collider2D col = overlaps[i];
+            if (col == null || !col.isTrigger) continue;
+
+            string objName = col.gameObject.name.ToLowerInvariant();
+            if (objName.Contains("interior") || objName.Contains("indoor") || objName.Contains("floor") || objName.Contains("house"))
+                return true;
+        }
+
+        return false;
     }
 
     private void OnDrawGizmosSelected()

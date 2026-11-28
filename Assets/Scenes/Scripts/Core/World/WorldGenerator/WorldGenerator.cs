@@ -447,4 +447,12 @@ public partial class WorldGenerator : MonoBehaviour
 
         loadedChunks.Remove(chunkCoord);
     }
+    public void ConfigureMenuPreview(int previewSeed, int maxChunkPadding = 1)
+    {
+        seed = previewSeed;
+        useRandomSeed = false;
+        loadSavedWorld = false;
+        cameraChunkPadding = Mathf.Max(1, maxChunkPadding);
+        unloadBufferChunks = 1;
+    }
 }

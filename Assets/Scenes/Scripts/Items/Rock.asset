@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Rock
   description: HelloTest
   rarity: 3
-  icon: {fileID: 2029542551908640097, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
+  icon: {fileID: -2821042892349479055, guid: dd471f1d552c3194ca37bfee6a219854, type: 3}
   itemType: 0
   isStackable: 1
   maxStackSize: 16

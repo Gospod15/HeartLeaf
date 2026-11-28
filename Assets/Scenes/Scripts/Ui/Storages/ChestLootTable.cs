@@ -17,7 +17,10 @@ public class ChestLootTable : ScriptableObject
     [Header("Loot Generation Settings")]
     [Tooltip("Maximum unique items per chest, 0 means unlimited")]
     [Min(0)] public int maxUniqueDrops = 4;
-    public bool shuffleSlots = true;
+
+    [Tooltip("If checked, items are placed in random slots; if unchecked, placed sequentially from slot 0")]
+    public bool scatterItemsRandomly = true;
+
     public List<LootEntry> entries = new List<LootEntry>();
 
     public void PopulateSlots(InventorySlotData[] targetSlots)
@@ -31,7 +34,7 @@ public class ChestLootTable : ScriptableObject
         }
 
         List<LootEntry> pool = new List<LootEntry>(entries);
-        if (shuffleSlots)
+        if (scatterItemsRandomly)
         {
             for (int i = pool.Count - 1; i > 0; i--)
             {
@@ -58,7 +61,7 @@ public class ChestLootTable : ScriptableObject
                     ? Mathf.Min(UnityEngine.Random.Range(min, max + 1), entry.item.maxStackSize)
                     : 1;
 
-                int pickPos = shuffleSlots ? UnityEngine.Random.Range(0, freeIndices.Count) : 0;
+                int pickPos = scatterItemsRandomly ? UnityEngine.Random.Range(0, freeIndices.Count) : 0;
                 int slotIndex = freeIndices[pickPos];
                 freeIndices.RemoveAt(pickPos);
 

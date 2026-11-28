@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-//дані про змінену клітинку (грядка, яма, зрубане дерево)
 [Serializable]
 public class ModifiedCellData
 {
@@ -13,7 +12,6 @@ public class ModifiedCellData
     public byte state;
 }
 
-//дані про об'єкт який поставив гравець
 [Serializable]
 public class PlacedObjectSaveData
 {
@@ -22,7 +20,6 @@ public class PlacedObjectSaveData
     public string objectId;
 }
 
-//дані про викинутий на землю предмет
 [Serializable]
 public class DroppedItemSaveData
 {
@@ -34,7 +31,6 @@ public class DroppedItemSaveData
     public float remainingLifetime;
 }
 
-//один слот всередині скрині
 [Serializable]
 public class ChestSlotSaveData
 {
@@ -43,7 +39,6 @@ public class ChestSlotSaveData
     public int amount;
 }
 
-//збереження конкретної скрині
 [Serializable]
 public class ChestSaveData
 {
@@ -53,7 +48,6 @@ public class ChestSaveData
     public List<ChestSlotSaveData> slots = new List<ChestSlotSaveData>();
 }
 
-//усі зміни в межах одного чанка
 [Serializable]
 public class ChunkSaveData
 {
@@ -63,11 +57,11 @@ public class ChunkSaveData
     public List<PlacedObjectSaveData> placedObjects = new List<PlacedObjectSaveData>();
 }
 
-//головна структура файлу збереження світу
 [Serializable]
 public class WorldSaveFile
 {
     public int worldSeed;
+    public float playTimeSeconds;
     public string lastSavedUtc;
     public WorldSettingsData worldSettings = new WorldSettingsData();
     public PlayerSaveData playerData = new PlayerSaveData();
@@ -76,18 +70,18 @@ public class WorldSaveFile
     public List<ChestSaveData> chests = new List<ChestSaveData>();
 }
 
-//коротка інформація про сейв для меню вибору світу
 [Serializable]
 public class WorldSaveSummary
 {
     public string saveSlotName;
     public string worldName;
+    public string playerName;
     public int worldSeed;
+    public float playTimeSeconds;
     public int difficulty;
     public string lastSavedUtc;
 }
 
-//зв'язка ID префабу та самого об'єкта для інспектора
 [Serializable]
 public class PrefabEntry
 {
@@ -124,11 +118,13 @@ public class WorldSaveManager : MonoBehaviour
     private WorldSettingsData activeWorldSettings = new WorldSettingsData();
     private string activeSaveSlot;
     private int currentWorldSeed;
+    private float totalPlayTimeSeconds = 0f;
     private bool hasSavedOnExit = false;
 
     public WorldSettingsData ActiveWorldSettings => activeWorldSettings;
     public string ActiveSaveSlot => activeSaveSlot;
     public int CurrentWorldSeed => currentWorldSeed;
+    public float TotalPlayTimeSeconds => totalPlayTimeSeconds;
 
     private void Awake()
     {
@@ -147,7 +143,11 @@ public class WorldSaveManager : MonoBehaviour
         BuildLookupTables();
     }
 
-    //визначення назви слоту збереження та стартових налаштувань
+    private void Update()
+    {
+        totalPlayTimeSeconds += Time.deltaTime;
+    }
+
     private void ResolveActiveSaveSlot()
     {
         string sessionSlot = GameSessionContext.CurrentSaveSlot;
@@ -164,10 +164,10 @@ public class WorldSaveManager : MonoBehaviour
         {
             activeWorldSettings = GameSessionContext.PendingWorldSettings;
             currentWorldSeed = activeWorldSettings.worldSeed;
+            totalPlayTimeSeconds = 0f;
         }
     }
 
-    //створення словників для швидкого пошуку предметів і префабів по ID
     private void BuildLookupTables()
     {
         prefabLookup.Clear();
@@ -195,7 +195,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //пошук гравця на сцені для збереження його позиції та інвентарю
     private void ResolveSaveablePlayer()
     {
         if (saveablePlayer != null) return;
@@ -222,16 +221,15 @@ public class WorldSaveManager : MonoBehaviour
 
     private void Start()
     {
-        //якщо створюємо новий світ — чистимо старі дані та робимо перший сейв
         if (GameSessionContext.IsCreatingNewWorld)
         {
             ClearRuntimeWorldData();
+            totalPlayTimeSeconds = 0f;
             SaveWorld(currentWorldSeed);
             GameSessionContext.ClearNewWorldFlag();
             return;
         }
 
-        //якщо генератора світу немає на сцені — вантажимо сейв самі
         if (autoLoadOnStart && WorldGenerator.instance == null)
         {
             if (LoadWorld(out int savedSeed))
@@ -242,7 +240,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //очищення тимчасових даних в оперативній пам'яті
     private void ClearRuntimeWorldData()
     {
         modifiedCellsByChunk.Clear();
@@ -251,7 +248,6 @@ public class WorldSaveManager : MonoBehaviour
         savedChestsById.Clear();
     }
 
-    //шлях до папки збережень у AppData/Roaming
     private string GetSavesDirectory()
     {
         string roamingPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -274,7 +270,6 @@ public class WorldSaveManager : MonoBehaviour
         return GetSaveFilePath(activeSaveSlot);
     }
 
-    //переведення координат клітинки у координати чанка
     public Vector2Int GetChunkCoord(Vector2Int globalCell)
     {
         int cx = Mathf.FloorToInt((float)globalCell.x / chunkSize);
@@ -282,7 +277,6 @@ public class WorldSaveManager : MonoBehaviour
         return new Vector2Int(cx, cy);
     }
 
-    //запис зміни рельєфу (наприклад, скопали землю або зрубали дерево)
     public void RecordNaturalChange(Vector2Int globalCell, byte state)
     {
         Vector2Int chunkCoord = GetChunkCoord(globalCell);
@@ -294,7 +288,6 @@ public class WorldSaveManager : MonoBehaviour
         cells[globalCell] = state;
     }
 
-    //запис поставленого гравцем об'єкта
     public void RecordPlacedObject(Vector2Int globalCell, string objectId)
     {
         Vector2Int chunkCoord = GetChunkCoord(globalCell);
@@ -306,7 +299,6 @@ public class WorldSaveManager : MonoBehaviour
         objects[globalCell] = objectId;
     }
 
-    //видалення об'єкта гравця зі збережень (коли зламав)
     public void RemovePlacedObject(Vector2Int globalCell)
     {
         Vector2Int chunkCoord = GetChunkCoord(globalCell);
@@ -316,7 +308,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //отримання збереженого стану клітинки для генератора
     public byte GetCellState(Vector2Int chunkCoord, Vector2Int globalCell)
     {
         if (modifiedCellsByChunk.TryGetValue(chunkCoord, out var cells))
@@ -329,7 +320,6 @@ public class WorldSaveManager : MonoBehaviour
         return 0;
     }
 
-    //отримання списку всіх будівель гравця в конкретному чанку
     public Dictionary<Vector2Int, string> GetPlacedObjectsInChunk(Vector2Int chunkCoord)
     {
         if (placedObjectsByChunk.TryGetValue(chunkCoord, out var objects))
@@ -348,7 +338,6 @@ public class WorldSaveManager : MonoBehaviour
         return null;
     }
 
-    //реєстрація скрині коли її чанк завантажився
     public void RegisterChest(ChestStorage chest)
     {
         if (chest != null)
@@ -357,7 +346,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //збереження та відписка скрині коли чанк вивантажується
     public void UnregisterChest(ChestStorage chest)
     {
         if (chest != null)
@@ -367,7 +355,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //зчитування предметів зі скрині у пам'ять збережень
     public void RecordChestState(ChestStorage chest)
     {
         if (chest == null || string.IsNullOrEmpty(chest.ChestId)) return;
@@ -401,7 +388,6 @@ public class WorldSaveManager : MonoBehaviour
         savedChestsById[chest.ChestId] = data;
     }
 
-    //відновлення речей у скриню при її появі
     public bool TryRestoreChest(ChestStorage chest)
     {
         if (chest == null || string.IsNullOrEmpty(chest.ChestId)) return false;
@@ -421,7 +407,6 @@ public class WorldSaveManager : MonoBehaviour
         currentWorldSeed = settings.worldSeed;
     }
 
-    //головна функція збереження всього світу у JSON файл
     public void SaveWorld(int seed)
     {
         currentWorldSeed = seed;
@@ -433,7 +418,6 @@ public class WorldSaveManager : MonoBehaviour
 
         ResolveSaveablePlayer();
 
-        //оновлюємо дані всіх активних скринь перед записом
         foreach (var chest in activeChests)
         {
             if (chest != null)
@@ -444,6 +428,7 @@ public class WorldSaveManager : MonoBehaviour
 
         WorldSaveFile saveFile = new WorldSaveFile();
         saveFile.worldSeed = seed;
+        saveFile.playTimeSeconds = totalPlayTimeSeconds;
         saveFile.lastSavedUtc = DateTime.UtcNow.ToString("o");
         saveFile.worldSettings = activeWorldSettings;
 
@@ -456,7 +441,6 @@ public class WorldSaveManager : MonoBehaviour
             saveFile.playerData = new PlayerSaveData();
         }
 
-        //збираємо всі чанки де є зміни або будівлі
         HashSet<Vector2Int> allChunks = new HashSet<Vector2Int>(modifiedCellsByChunk.Keys);
         allChunks.UnionWith(placedObjectsByChunk.Keys);
 
@@ -496,7 +480,6 @@ public class WorldSaveManager : MonoBehaviour
             }
         }
 
-        //збираємо всі предмети що лежать на землі
         foreach (var worldItem in ItemInWorldManager.ActiveWorldItems)
         {
             if (worldItem == null || worldItem.itemData == null || worldItem.amount <= 0 || worldItem.RemainingLifetime <= 0f)
@@ -529,7 +512,6 @@ public class WorldSaveManager : MonoBehaviour
         File.WriteAllText(GetSaveFilePath(), json);
     }
 
-    //завантаження світу з JSON файлу
     public bool LoadWorld(out int loadedSeed)
     {
         loadedSeed = 0;
@@ -537,6 +519,7 @@ public class WorldSaveManager : MonoBehaviour
         if (GameSessionContext.IsCreatingNewWorld)
         {
             loadedSeed = currentWorldSeed;
+            totalPlayTimeSeconds = 0f;
             ClearRuntimeWorldData();
             SaveWorld(loadedSeed);
             GameSessionContext.ClearNewWorldFlag();
@@ -551,6 +534,7 @@ public class WorldSaveManager : MonoBehaviour
 
         loadedSeed = saveFile.worldSeed;
         currentWorldSeed = loadedSeed;
+        totalPlayTimeSeconds = saveFile.playTimeSeconds;
 
         activeWorldSettings = saveFile.worldSettings ?? new WorldSettingsData();
         activeWorldSettings.worldSeed = loadedSeed;
@@ -559,7 +543,6 @@ public class WorldSaveManager : MonoBehaviour
             activeWorldSettings.worldName = activeSaveSlot;
         }
 
-        //відновлення стану гравця
         ResolveSaveablePlayer();
         if (saveablePlayer != null && saveFile.playerData != null && saveFile.playerData.hasData)
         {
@@ -568,7 +551,6 @@ public class WorldSaveManager : MonoBehaviour
 
         ClearRuntimeWorldData();
 
-        //завантаження змін по чанках у словники
         foreach (var chunkData in saveFile.chunks)
         {
             Vector2Int chunkCoord = new Vector2Int(chunkData.chunkX, chunkData.chunkY);
@@ -624,7 +606,6 @@ public class WorldSaveManager : MonoBehaviour
         return true;
     }
 
-    //спавн викинутих предметів назад у світ після генерації карти
     public void RestoreDroppedItems()
     {
         if (pendingDroppedItems.Count == 0) return;
@@ -653,7 +634,6 @@ public class WorldSaveManager : MonoBehaviour
         pendingDroppedItems.Clear();
     }
 
-    //збереження гри та вихід у головне меню
     public void SaveAndExitToMenu(string menuSceneName)
     {
         if (!hasSavedOnExit)
@@ -666,7 +646,6 @@ public class WorldSaveManager : MonoBehaviour
         SceneManager.LoadScene(menuSceneName);
     }
 
-    //отримання списку всіх файлів збережень для меню вибору
     public List<WorldSaveSummary> GetAllSaveSlots()
     {
         List<WorldSaveSummary> results = new List<WorldSaveSummary>();
@@ -687,7 +666,9 @@ public class WorldSaveManager : MonoBehaviour
                 WorldSaveSummary summary = new WorldSaveSummary();
                 summary.saveSlotName = slotName;
                 summary.worldName = !string.IsNullOrWhiteSpace(settings.worldName) ? settings.worldName : slotName;
+                summary.playerName = !string.IsNullOrWhiteSpace(settings.playerName) ? settings.playerName : "Player";
                 summary.worldSeed = saveFile.worldSeed;
+                summary.playTimeSeconds = saveFile.playTimeSeconds;
                 summary.difficulty = settings.difficulty;
                 summary.lastSavedUtc = saveFile.lastSavedUtc;
                 results.Add(summary);
@@ -714,7 +695,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //автозбереження при закритті вікна гри
     private void OnApplicationQuit()
     {
         if (!hasSavedOnExit && instance == this)
@@ -724,7 +704,6 @@ public class WorldSaveManager : MonoBehaviour
         }
     }
 
-    //автозбереження при знищенні об'єкта менеджера
     private void OnDestroy()
     {
         if (!hasSavedOnExit && instance == this)

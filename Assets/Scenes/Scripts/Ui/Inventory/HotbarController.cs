@@ -10,6 +10,7 @@ public class HotbarController : MonoBehaviour
     [Header("Main links")]
     [SerializeField] private ToolController toolController;
     [SerializeField] private Image[] slotBackgrounds;
+    [SerializeField] private Image[] slotIcons;
 
     [Header("Visible amounts")]
     [SerializeField] private TextMeshProUGUI[] slotAmountTexts;
@@ -28,15 +29,28 @@ public class HotbarController : MonoBehaviour
         if (instance == null) instance = this;
     }
 
+    private void OnEnable()
+    {
+        if (InventoryManager.instance != null)
+        {
+            InventoryManager.instance.OnInventoryChanged -= UpdateHotbarUI;
+            InventoryManager.instance.OnInventoryChanged += UpdateHotbarUI;
+            UpdateHotbarUI();
+        }
+    }
+
     private void Start()
     {
         if (toolController == null)
             toolController = FindFirstObjectByType<ToolController>();
 
         if (InventoryManager.instance != null)
+        {
+            InventoryManager.instance.OnInventoryChanged -= UpdateHotbarUI;
             InventoryManager.instance.OnInventoryChanged += UpdateHotbarUI;
+        }
 
-        SelectSlot(0);
+        SelectSlot(selectedHotbarSlot);
     }
 
     private void OnDestroy()
@@ -77,11 +91,38 @@ public class HotbarController : MonoBehaviour
         return null;
     }
 
-    private void UpdateHotbarUI()
+    public void UpdateHotbarUI()
     {
         if (InventoryManager.instance == null) return;
 
         var slots = InventoryManager.instance.Slots;
+
+        if (slotIcons != null)
+        {
+            for (int i = 0; i < slotIcons.Length; i++)
+            {
+                if (slotIcons[i] == null) continue;
+
+                int realIndex = HOTBAR_START_INDEX + i;
+                bool hasItem = realIndex < slots.Count && !slots[realIndex].IsEmpty && slots[realIndex].item != null;
+
+                if (hasItem)
+                {
+                    slotIcons[i].sprite = slots[realIndex].item.icon;
+                    Color c = slotIcons[i].color;
+                    c.a = 1f;
+                    slotIcons[i].color = c;
+                    slotIcons[i].enabled = true;
+                }
+                else
+                {
+                    slotIcons[i].sprite = null;
+                    Color c = slotIcons[i].color;
+                    c.a = 0f;
+                    slotIcons[i].color = c;
+                }
+            }
+        }
 
         if (slotBackgrounds != null)
         {

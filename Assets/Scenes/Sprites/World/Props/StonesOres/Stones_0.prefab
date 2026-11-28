@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4680181152469736093}
   - component: {fileID: -2040959802507998851}
   - component: {fileID: -5407021892484914180}
-  m_Layer: 3
+  m_Layer: 9
   m_Name: Stones_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -153,5 +153,4 @@ MonoBehaviour:
   health: 7
   dropItem: {fileID: 11400000, guid: d884559ef90baa040afd65f1908af0be, type: 2}
   dropPrefab: {fileID: 0}
-  minDropAmount: 2
-  maxDropAmount: 4
+  dropAmount: 2

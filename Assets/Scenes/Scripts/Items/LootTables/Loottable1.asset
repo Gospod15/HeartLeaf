@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c26cee8a5ca40b4a92d21c290d7d253, type: 3}
+  m_Name: Loottable1
+  m_EditorClassIdentifier: Assembly-CSharp::ChestLootTable
+  maxUniqueDrops: 4
+  scatterItemsRandomly: 1
+  entries:
+  - item: {fileID: 11400000, guid: b4ab7d15f89d0554a9751f0bdaddb811, type: 2}
+    dropChance: 77.3
+    minAmount: 2
+    maxAmount: 10
+  - item: {fileID: 11400000, guid: b4ab7d15f89d0554a9751f0bdaddb811, type: 2}
+    dropChance: 76.6
+    minAmount: 2
+    maxAmount: 5
+  - item: {fileID: 11400000, guid: a73c420bcda434641bc8f1755b11ca74, type: 2}
+    dropChance: 85.1
+    minAmount: 2
+    maxAmount: 6
+  - item: {fileID: 11400000, guid: 4690e24557653bd44ba22cd8125051fb, type: 2}
+    dropChance: 58.2
+    minAmount: 2
+    maxAmount: 6
+  - item: {fileID: 11400000, guid: 4b31651c36204eb49830680e1059b04d, type: 2}
+    dropChance: 82
+    minAmount: 2
+    maxAmount: 6

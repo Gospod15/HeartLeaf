@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 440f3da1bfdf9e64fa52b40ca3e531d8, type: 3}
+  m_Name: StickRecipe1
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
+  isShapeless: 0
+  ingredients:
+  - slotIndex: 0
+    item: {fileID: 11400000, guid: 9ac53af9cd626184587fa6c9912666b8, type: 2}
+    amount: 1
+  - slotIndex: 1
+    item: {fileID: 11400000, guid: 4a095f507e46810458a8c4fb0bfe785d, type: 2}
+    amount: 2
+  resultItem: {fileID: 11400000, guid: ec164f3435f5d5d46b8129eb3c04d2b6, type: 2}
+  resultAmount: 1
